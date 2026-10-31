@@ -1,10 +1,7 @@
 name: Validate and sync upstream
 
+# Disabled automatic synchronization; run manually from GitHub Actions only.
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: '23 5 * * *'
   workflow_dispatch:
 
 permissions:
