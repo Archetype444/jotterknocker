@@ -37,7 +37,6 @@ import org.junit.runner.RunWith
 class NoteInteractionTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private lateinit var scenario: ActivityScenario<MainActivity>
-    private var gestureStart = 0L
     private val appNames = listOf("Browser", "Files", "Calendar", "Messages", "Photos", "Music", "Maps", "Mail", "Notes", "Camera", "Contacts", "Clock", "Settings", "Reader", "Tasks")
     private val note = "# A quiet place to think\n\n- [ ] Keep the note still\n\n[Example](https://example.com)\n\n" +
         (1..400).joinToString("\n") { "Line $it — a long note for smooth scrolling." }
@@ -76,39 +75,34 @@ class NoteInteractionTest {
         scenario.onActivity { action(it, it.findViewById(R.id.scratchpad)) }
     }
 
-    private fun send(action: Int, x: Float, y: Float) {
-        if (action == MotionEvent.ACTION_DOWN) gestureStart = SystemClock.uptimeMillis()
-        onNote { _, pad -> dispatch(pad, action, x, y, gestureStart, SystemClock.uptimeMillis()) }
-    }
-
     private fun dispatch(pad: MarkdownEditText, action: Int, x: Float, y: Float, downTime: Long, eventTime: Long) {
         val event = MotionEvent.obtain(downTime, eventTime, action, x, y, 0).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
         try { pad.dispatchTouchEvent(event) } finally { event.recycle() }
     }
 
     private fun swipe(up: Boolean = true, pauseAtEnd: Boolean = false) {
-        var x = 0f; var start = 0f; var end = 0f
         onNote { _, pad ->
-            x = pad.width * 0.6f
+            val x = pad.width * 0.6f
             val viewport = pad.height - pad.totalPaddingTop - pad.totalPaddingBottom
-            start = pad.totalPaddingTop + viewport * if (up) 0.85f else 0.15f
-            end = pad.totalPaddingTop + viewport * if (up) 0.15f else 0.85f
+            val start = pad.totalPaddingTop + viewport * if (up) 0.85f else 0.15f
+            val end = pad.totalPaddingTop + viewport * if (up) 0.15f else 0.85f
+            val steps = 24
+            val upTime = SystemClock.uptimeMillis()
+            // Use device event times. Scheduling one UI call per event can invent long presses on CI.
+            val down = upTime - steps * 18L - if (pauseAtEnd) 180L else 8L
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, start, down, down)
+            for (i in 1..steps) dispatch(pad, MotionEvent.ACTION_MOVE, x, start + (end - start) * i / steps, down, down + 18L * i)
+            dispatch(pad, MotionEvent.ACTION_UP, x, end, down, upTime)
+            if (pauseAtEnd) assertFalse("Lifting after a pause started a fling", pad.isReadingScrollActive)
         }
-        send(MotionEvent.ACTION_DOWN, x, start)
-        val steps = 24
-        for (i in 1..steps) {
-            SystemClock.sleep(18)
-            send(MotionEvent.ACTION_MOVE, x, start + (end - start) * i / steps)
-        }
-        if (pauseAtEnd) SystemClock.sleep(180)
-        send(MotionEvent.ACTION_UP, x, end)
-        if (pauseAtEnd) onNote { _, pad -> assertFalse("Lifting after a pause started a fling", pad.isReadingScrollActive) }
     }
 
     private fun tap(x: Float, y: Float) {
-        send(MotionEvent.ACTION_DOWN, x, y)
-        SystemClock.sleep(40)
-        send(MotionEvent.ACTION_UP, x, y)
+        onNote { _, pad ->
+            val now = SystemClock.uptimeMillis()
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, y, now - 40, now - 40)
+            dispatch(pad, MotionEvent.ACTION_UP, x, y, now - 40, now)
+        }
     }
 
     private fun assertReading() {
@@ -200,19 +194,18 @@ class NoteInteractionTest {
     }
 
     @Test fun dragEndingOnACheckboxNeverTogglesIt() {
-        var x = 0f; var y = 0f
         onNote { _, pad ->
             val span = pad.text!!.getSpans(0, pad.length(), CheckboxSpan::class.java).first()
             val offset = pad.text!!.getSpanStart(span)
             val line = pad.layout.getLineForOffset(offset)
-            x = pad.totalPaddingLeft + pad.layout.getPrimaryHorizontal(offset) + pad.textSize / 2
-            y = pad.totalPaddingTop + (pad.layout.getLineTop(line) + pad.layout.getLineBottom(line)) / 2f
+            val x = pad.totalPaddingLeft + pad.layout.getPrimaryHorizontal(offset) + pad.textSize / 2
+            val y = pad.totalPaddingTop + (pad.layout.getLineTop(line) + pad.layout.getLineBottom(line)) / 2f
+            val now = SystemClock.uptimeMillis()
+            val down = now - 200
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, y + 120, down, down)
+            dispatch(pad, MotionEvent.ACTION_MOVE, x, y, down, down + 20)
+            dispatch(pad, MotionEvent.ACTION_UP, x, y, down, now)
         }
-        send(MotionEvent.ACTION_DOWN, x, y + 120)
-        SystemClock.sleep(20)
-        send(MotionEvent.ACTION_MOVE, x, y)
-        SystemClock.sleep(180)
-        send(MotionEvent.ACTION_UP, x, y)
         assertReading()
     }
 
@@ -251,36 +244,43 @@ class NoteInteractionTest {
     }
 
     @Test fun pinchNeverOpensTheEditorOrChangesTheNote() {
-        var x = 0f; var y = 0f
-        onNote { _, pad -> x = pad.width / 2f; y = (pad.totalPaddingTop + pad.height) / 2f }
-        send(MotionEvent.ACTION_DOWN, x - 90, y)
-        fun multi(action: Int, distance: Float) {
-            onNote { _, pad ->
+        onNote { _, pad ->
+            val x = pad.width / 2f
+            val y = (pad.totalPaddingTop + pad.height) / 2f
+            val down = SystemClock.uptimeMillis() - 200
+            dispatch(pad, MotionEvent.ACTION_DOWN, x - 90, y, down, down)
+            fun multi(action: Int, distance: Float, elapsed: Long) {
                 val properties = arrayOf(MotionEvent.PointerProperties().apply { id = 0; toolType = MotionEvent.TOOL_TYPE_FINGER },
                     MotionEvent.PointerProperties().apply { id = 1; toolType = MotionEvent.TOOL_TYPE_FINGER })
                 val coordinates = arrayOf(MotionEvent.PointerCoords().apply { this.x = x - distance; this.y = y; pressure = 1f; size = 1f },
                     MotionEvent.PointerCoords().apply { this.x = x + distance; this.y = y; pressure = 1f; size = 1f })
-                val event = MotionEvent.obtain(gestureStart, SystemClock.uptimeMillis(), action, 2, properties, coordinates,
-                    0, 0, 1f, 1f, 0, 0, android.view.InputDevice.SOURCE_TOUCHSCREEN, 0)
+                val event = MotionEvent.obtain(down, down + elapsed, action, 2, properties, coordinates,
+                    0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0)
                 pad.dispatchTouchEvent(event)
                 event.recycle()
             }
+            multi(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 90f, 20)
+            for (i in 1..8) multi(MotionEvent.ACTION_MOVE, 90f + i * 12, 20L + i * 18L)
+            multi(MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 186f, 180)
+            dispatch(pad, MotionEvent.ACTION_UP, x - 186, y, down, down + 200)
         }
-        multi(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 90f)
-        for (i in 1..8) { SystemClock.sleep(18); multi(MotionEvent.ACTION_MOVE, 90f + i * 12) }
-        multi(MotionEvent.ACTION_POINTER_UP or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), 186f)
-        send(MotionEvent.ACTION_UP, x - 186, y)
         assertReading()
     }
 
     @Test fun aLongPressStillOpensSettingsAndCancelledPressDoesNot() {
         var x = 0f; var y = 0f
-        onNote { _, pad -> x = pad.width * 0.8f; y = pad.totalPaddingTop + 20f }
-        send(MotionEvent.ACTION_DOWN, x, y)
-        send(MotionEvent.ACTION_CANCEL, x, y)
+        onNote { _, pad ->
+            x = pad.width * 0.8f; y = pad.totalPaddingTop + 20f
+            val now = SystemClock.uptimeMillis()
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, y, now, now)
+            dispatch(pad, MotionEvent.ACTION_CANCEL, x, y, now, now)
+        }
         SystemClock.sleep(ViewConfiguration.getLongPressTimeout().toLong() + 80)
-        onNote { _, pad -> assertFalse(pad.isFocused) }
-        send(MotionEvent.ACTION_DOWN, x, y)
+        onNote { _, pad ->
+            assertFalse(pad.isFocused)
+            val now = SystemClock.uptimeMillis()
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, y, now, now)
+        }
         SystemClock.sleep(ViewConfiguration.getLongPressTimeout().toLong() + 150)
         instrumentation.waitForIdleSync()
         scenario.onActivity {
@@ -294,8 +294,11 @@ class NoteInteractionTest {
         onNote { _, pad -> pad.scrollTo(0, pad.maximumNoteScroll) }
         swipe(pauseAtEnd = true)
         onNote { _, pad -> assertEquals(pad.maximumNoteScroll, pad.scrollY) }
-        send(MotionEvent.ACTION_DOWN, 150f, 200f)
-        send(MotionEvent.ACTION_CANCEL, 150f, 200f)
+        onNote { _, pad ->
+            val now = SystemClock.uptimeMillis()
+            dispatch(pad, MotionEvent.ACTION_DOWN, 150f, 200f, now, now)
+            dispatch(pad, MotionEvent.ACTION_CANCEL, 150f, 200f, now, now)
+        }
         assertReading()
     }
 
