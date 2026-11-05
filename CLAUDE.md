@@ -1,10 +1,10 @@
-# Scratchpad Launcher
+# jotterknocker
 
 Minimal Android launcher: top half is a persistent plain-text scratchpad, bottom half a small fixed app grid. Fork of [Olauncher](https://github.com/tanujnotes/Olauncher) — package/namespace is still `app.olauncher`, applicationId is `app.scratchpad.launcher`. See `README.md` for product description, `idea.md` for original design notes.
 
 ## Build
 
-Single Gradle module (`app`), Kotlin, no CI configured. Use `just` (justfile at repo root):
+Single Gradle module (`app`), Kotlin. GitHub Actions builds releases and runs unit, lint and emulator tests. Use `just` (justfile at repo root):
 
 - `just build` — assembleDebug
 - `just test` — unit tests only (`app/src/test`), fast, no device needed

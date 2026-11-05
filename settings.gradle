@@ -1,2 +1,2 @@
+rootProject.name = 'jotterknocker'
 include ':app'
-rootProject.name = "Olauncher"

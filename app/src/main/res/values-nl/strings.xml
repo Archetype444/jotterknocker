@@ -5,7 +5,7 @@
     <string name="set_as_default_launcher_u"><u>Stel in als standaard launcher</u></string>
     <string name="app_text_color">Tekstkleur</string>
     <string name="double_tap_to_lock_screen">Dubbel tik om te vergrendelen</string>
-    <string name="admin_permission_message">Scratchpad Launcher belooft de toestemming voor vergrendelingsscherm verantwoord te gebruiken. Scratchpad Launcher verzamelt of deelt geen gegevens.</string>
+    <string name="admin_permission_message">jotterknocker belooft de toestemming voor vergrendelingsscherm verantwoord te gebruiken. jotterknocker verzamelt of deelt geen gegevens.</string>
     <string name="about">Over</string>
     <string name="off">Uit</string>
     <string name="on">Aan</string>
@@ -51,14 +51,14 @@
     <string name="welcome_to_olauncher_settings">Welkom bij de instellingen!
         \n\nOnthoud, als je vragen hebt, heeft onze Over-pagina het antwoord.</string>
     <!--    <string name="share_message">Your monthly reminder - you should use your phone, not the other way round. Stay strong. You\'re doing great!-->
-    <!--         \n\nIf you have a moment to spare, could you please share Scratchpad Launcher with others? Scratchpad Launcher needs people. More importantly, people need Scratchpad Launcher.</string>-->
-    <string name="keyboard_message">Hoi, het toetsenbord is de snelste manier om apps te vinden en te starten in Scratchpad Launcher. Mag ik je vragen dit nog een paar dagen ingeschakeld te laten en daarna te beslissen?
+    <!--         \n\nIf you have a moment to spare, could you please share jotterknocker with others? jotterknocker needs people. More importantly, people need jotterknocker.</string>-->
+    <string name="keyboard_message">Hoi, het toetsenbord is de snelste manier om apps te vinden en te starten in jotterknocker. Mag ik je vragen dit nog een paar dagen ingeschakeld te laten en daarna te beslissen?
         \n\nDe keuze is altijd aan jou.</string>
     <string name="digital_wellbeing_message">Als je tijdslimieten voor bepaalde apps wilt instellen, kan de Digital Wellbeing-functie van Android je daarbij helpen.
         \n\nZoek in de instellingen van je telefoon naar Digital Wellbeing en schakel het in.</string>
     <string name="app_usage_message">Om je schermtijd op het startscherm te tonen of te verbergen, geef of weiger de toestemming voor app-gebruik.
         \n\nOpmerking: er worden geen app-gebruiksgegevens verzameld. Alles wordt op je apparaat verwerkt.</string>
-    <string name="accessibility_service_description">De toegankelijkheidstoestemming is vereist om dubbel tikken om te vergrendelen en de startknop voor recente apps mogelijk te maken. Alle gegevens die Scratchpad Launcher via deze service verkrijgt, verlaten je apparaat niet.</string>
+    <string name="accessibility_service_description">De toegankelijkheidstoestemming is vereist om dubbel tikken om te vergrendelen en de startknop voor recente apps mogelijk te maken. Alle gegevens die jotterknocker via deze service verkrijgt, verlaten je apparaat niet.</string>
     <string name="open">Link openen</string>
     <string name="copy">Kopiëren</string>
     <string name="close">Sluiten</string>
@@ -68,13 +68,13 @@
     <string name="date_only">Alleen datum</string>
     <string name="bottom_on">Onder: Aan</string>
     <string name="bottom_off">Onder: Uit</string>
-    <string name="please_set_olauncher_as_default_first">Stel Scratchpad Launcher eerst in als standaard</string>
+    <string name="please_set_olauncher_as_default_first">Stel jotterknocker eerst in als standaard</string>
     <string name="tip_start_typing_for_rename">Tip: Begin met typen om een app te hernoemen</string>
-    <string name="hidden_apps_message">Opmerking: Tik bovenaan deze instellingenpagina op \'Scratchpad Launcher\' om je verborgen apps te vinden.\n\nMeer informatie is beschikbaar op onze Over-pagina.</string>
+    <string name="hidden_apps_message">Opmerking: Tik bovenaan deze instellingenpagina op \'jotterknocker\' om je verborgen apps te vinden.\n\nMeer informatie is beschikbaar op onze Over-pagina.</string>
     <string name="swipe_down_for">Veeg omlaag voor</string>
     <string name="search">Zoeken</string>
     <string name="notifications">Meldingen</string>
-    <string name="accessibility_disclosure">Schakel de toegankelijkheidsdienst van Scratchpad Launcher in via de instellingen van je apparaat om de gebaren dubbel tikken om te vergrendelen of startknop voor recente apps te activeren.\n\nHoud er rekening mee dat deze service alleen wordt gebruikt voor deze gebaren. Onze toegankelijkheidsdienst verzamelt of deelt geen gegevens.</string>
+    <string name="accessibility_disclosure">Schakel de toegankelijkheidsdienst van jotterknocker in via de instellingen van je apparaat om de gebaren dubbel tikken om te vergrendelen of startknop voor recente apps te activeren.\n\nHoud er rekening mee dat deze service alleen wordt gebruikt voor deze gebaren. Onze toegankelijkheidsdienst verzamelt of deelt geen gegevens.</string>
     <string name="accept">Accepteren</string>
     <string name="permission">Toestemming</string>
     <string name="double_tap_lock">Dubbel tik om te vergrendelen</string>
@@ -88,7 +88,7 @@
     <string name="enabled">Ingeschakeld</string>
     <string name="disabled">Uitgeschakeld</string>
     <string name="please_turn_on_double_tap_to_unlock">Schakel dubbel tik om te vergrendelen in</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcher kon het apparaat niet vergrendelen.\nControleer je app-instellingen.</string>
+    <string name="launcher_failed_to_lock_device">jotterknocker kon het apparaat niet vergrendelen.\nControleer je app-instellingen.</string>
     <string name="long_press_to_select_app">Lang indrukken om app te selecteren</string>
     <string name="unable_to_open_app">Kan app-info niet openen</string>
     <string name="copied">Gekopieerd</string>

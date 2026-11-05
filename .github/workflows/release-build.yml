@@ -1,56 +1,132 @@
-name: Build fork release
+name: Build and verify jotterknocker
 
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/release-build.yml']
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - '*.gradle'
+      - '.github/workflows/release-build.yml'
+      - 'scripts/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-release:
+  unit-and-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
-
-      - name: Prepare release version and SDK
-        run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0'
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          p = Path('app/build.gradle')
-          s = p.read_text()
-          s = re.sub(r'versionCode (\d+)', lambda m: f'versionCode {int(m[1]) + 1}', s)
-          s = re.sub(r'versionName "([^"]+)"', lambda m: f'versionName "{m[1]}-15apps.1"', s)
-          p.write_text(s)
-          PY
-
-      - name: Verify layout, build release and run tests
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Configure Android SDK
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+      - name: Layout contract, unit tests and lint
         run: |
           python scripts/check-fork-layout.py
-          bash gradlew assembleRelease testDebugUnitTest lintRelease --no-daemon
+          bash gradlew testDebugUnitTest lintDebug lintRelease assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-and-lint-results
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          retention-days: 14
 
-      - name: Collect unsigned APK and signing tool
+  emulator-tests:
+    needs: unit-and-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 24
+            resolution: 1080x1920
+            density: 420
+            font: '1.0'
+          - api: 30
+            resolution: 1080x1920
+            density: 420
+            font: '1.0'
+          - api: 35
+            resolution: 1768x2208
+            density: 420
+            font: '1.35'
+          - api: 36
+            resolution: 1080x1920
+            density: 420
+            font: '1.0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Configure Android SDK and KVM
         run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb shell wm size ${{ matrix.resolution }}
+            adb shell wm density ${{ matrix.density }}
+            adb shell settings put system font_scale ${{ matrix.font }}
+            bash gradlew connectedDebugAndroidTest --no-daemon
+            adb pull /sdcard/Android/data/app.scratchpad.launcher.debug/files/jotterknocker-preview.png preview-api-${{ matrix.api }}.png
+      - name: Capture device logs
+        if: always()
+        run: adb logcat -d > emulator-logcat.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-api-${{ matrix.api }}
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+            preview-api-*.png
+            emulator-logcat.txt
+          retention-days: 14
+
+  build-release:
+    needs: [unit-and-lint, emulator-tests]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the validated release
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          bash gradlew assembleRelease --no-daemon
           mkdir -p release-build
           cp app/build/outputs/apk/release/app-release-unsigned.apk release-build/
           cp "$ANDROID_HOME/build-tools/35.0.0/lib/apksigner.jar" release-build/
           git rev-parse HEAD > release-build/source-commit.txt
           sha256sum release-build/app-release-unsigned.apk > release-build/unsigned-sha256.txt
-
       - uses: actions/upload-artifact@v4
         with:
-          name: fork-release-build
+          name: jotterknocker-release-build
           path: release-build/
-          retention-days: 7
+          retention-days: 14
           if-no-files-found: error

@@ -19,12 +19,12 @@
     <string name="long_press_to_enable">Naciśnij długo, aby włączyć</string>
     <string name="no_hidden_apps">Brak ukrytych aplikacji</string>
     <string name="hidden_apps">Ukrytych aplikacji</string>
-    <string name="hidden_apps_message">Uwaga: Stuknij w „Scratchpad Launcher” u góry tej strony ustawień, aby znaleźć ukryte aplikacje.
+    <string name="hidden_apps_message">Uwaga: Stuknij w „jotterknocker” u góry tej strony ustawień, aby znaleźć ukryte aplikacje.
         \n\nWięcej informacji znajduje się na stronie Informacje poniżej.</string>
     <string name="swipe_down_for">Przesuń w dół, aby</string>
     <string name="search">Szukaj</string>
     <string name="notifications">Powiadomienia</string>
-    <string name="accessibility_disclosure">Włącz usługę ułatwień dostępu Scratchpad Launcher w ustawieniach swojego urządzenia, aby włączyć gesty podwójnego dotknięcia do zablokowania lub przycisku ekranu głównego dla ostatnich aplikacji.\n\nZwróć uwagę, że ta usługa jest używana tylko do tych gestów. Nasza usługa ułatwień dostępu nie zbiera ani nie udostępnia żadnych danych.</string>
+    <string name="accessibility_disclosure">Włącz usługę ułatwień dostępu jotterknocker w ustawieniach swojego urządzenia, aby włączyć gesty podwójnego dotknięcia do zablokowania lub przycisku ekranu głównego dla ostatnich aplikacji.\n\nZwróć uwagę, że ta usługa jest używana tylko do tych gestów. Nasza usługa ułatwień dostępu nie zbiera ani nie udostępnia żadnych danych.</string>
     <string name="accept">Akceptuj</string>
     <string name="permission">Uprawnienie</string>
     <string name="double_tap_lock">Kliknij dwukrotnie, aby zablokować</string>
@@ -38,7 +38,7 @@
     <string name="enabled">Włączony</string>
     <string name="disabled">Wyłączony</string>
     <string name="please_turn_on_double_tap_to_unlock">Włącz podwójne dotknięcie, aby zablokować</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcherowi nie udało się zablokować urządzenia. Sprawdź ustawienia aplikacji.</string>
+    <string name="launcher_failed_to_lock_device">jotterknockerowi nie udało się zablokować urządzenia. Sprawdź ustawienia aplikacji.</string>
     <string name="long_press_to_select_app">Naciśnij długo, aby wybrać aplikację</string>
     <string name="unable_to_open_app">Nie można otworzyć informacji o aplikacji</string>
     <string name="copied">Skopiowane</string>
@@ -48,7 +48,7 @@
     <string name="adapter_hide">Ukryj</string>
     <string name="app_text_color">Kolor tekstu</string>
     <string name="double_tap_to_lock_screen">Kliknij dwukrotnie, aby zablokować</string>
-    <string name="admin_permission_message">Scratchpad Launcher obiecuje odpowiedzialnie korzystać z uprawnień blokady ekranu. Scratchpad Launcher nie gromadzi ani nie udostępnia żadnych danych.</string>
+    <string name="admin_permission_message">jotterknocker obiecuje odpowiedzialnie korzystać z uprawnień blokady ekranu. jotterknocker nie gromadzi ani nie udostępnia żadnych danych.</string>
     <string name="about">Informacje</string>
     <string name="off">Nie</string>
     <string name="on">Tak</string>
@@ -82,12 +82,12 @@
     <string name="light">Jasny</string>
     <string name="welcome_to_olauncher_settings">Witamy w ustawieniach!
         \n\nPamiętaj, jeśli masz jakiekolwiek pytania, nasza strona „O nas” ma odpowiedź.</string>
-    <string name="keyboard_message">Cześć, klawiatura to najszybszy sposób znajdowania i uruchamiania aplikacji w Scratchpad Launcher. Czy możemy poprosić o pozostawienie tego włączonego jeszcze przez kilka dni, a następnie podjęcie decyzji?\n\nWybór zawsze należy do Ciebie.</string>
+    <string name="keyboard_message">Cześć, klawiatura to najszybszy sposób znajdowania i uruchamiania aplikacji w jotterknocker. Czy możemy poprosić o pozostawienie tego włączonego jeszcze przez kilka dni, a następnie podjęcie decyzji?\n\nWybór zawsze należy do Ciebie.</string>
     <string name="digital_wellbeing_message">Jeśli chcesz ustawić limity czasowe dla niektórych aplikacji, funkcja Cyfrowa równowaga w systemie Android może Ci w tym pomóc.
         \n\nWyszukaj opcję Cyfrowa równowaga w ustawieniach telefonu i włącz ją.</string>
     <string name="app_usage_message">Aby wyświetlić/ukryć czas ekranu na ekranie głównym, pozwól lub zabroń aplikacji na dostęp do danych o użyciu.
         \n\nUwaga: Nie są gromadzone żadne dane o użyciu aplikacji. Wszystko jest przetwarzane na Twoim urządzeniu.</string>
-    <string name="accessibility_service_description">Uprawnienia dostępu są wymagane, aby włączyć podwójne dotknięcie do zablokowania i przycisk ekranu głównego do wyświetlania ostatnich aplikacji. Wszelkie dane pozyskane przez Scratchpad Launcher za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string>
+    <string name="accessibility_service_description">Uprawnienia dostępu są wymagane, aby włączyć podwójne dotknięcie do zablokowania i przycisk ekranu głównego do wyświetlania ostatnich aplikacji. Wszelkie dane pozyskane przez jotterknocker za pośrednictwem tej usługi nie opuszczą Twojego urządzenia.</string>
     <string name="open">Otwórz łącze</string>
     <string name="copy">Kopiuj</string>
     <string name="close">Zamknij</string>
@@ -97,7 +97,7 @@
     <string name="date_only">Tylko data</string>
     <string name="bottom_on">Dół: włączony</string>
     <string name="bottom_off">Dół: wyłączone</string>
-    <string name="please_set_olauncher_as_default_first">Najpierw ustaw Scratchpad Launcher jako domyślny program uruchamiający</string>
+    <string name="please_set_olauncher_as_default_first">Najpierw ustaw jotterknocker jako domyślny program uruchamiający</string>
     <string name="app_not_found">Nie znaleziono aplikacji</string>
     <string name="unable_to_launch_app">Nie można uruchomić aplikacji</string>
     <string name="search_for_Launcher_or_home_app">Wyszukaj program uruchamiający lub aplikację domową</string>
@@ -106,7 +106,7 @@
     <string name="swipe_left_app_disabled">Gest Przesuń w lewo wyłączony</string>
     <string name="swipe_right_app_disabled">Gest Przesuń w prawo jest wyłączony</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">Czy używasz telefonu, czy telefon używa ciebie?</string>
-    <string name="about_olauncher">O Scratchpad Launcher</string>
+    <string name="about_olauncher">O jotterknocker</string>
     <string name="screen_time">Czas ekranowy</string>
     <string name="learn_more">Ucz się więcej</string>
     <string name="alignment_changed">Wyrównanie zmienione ✅</string>

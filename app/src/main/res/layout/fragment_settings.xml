@@ -399,22 +399,7 @@
                         style="@style/SettingsSummary" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/flSwipeDown"
-                    style="@style/SettingsRow"
-                    android:visibility="gone">
-
-                    <TextView
-                        style="@style/SettingsTitle"
-                        android:text="@string/swipe_down_for" />
-
-                    <TextView
-                        android:id="@+id/swipeDownAction"
-                        style="@style/SettingsSummary"
-                        tools:text="@string/search" />
-                </LinearLayout>
-
-                <LinearLayout style="@style/SettingsSwitchRow">
+<LinearLayout style="@style/SettingsSwitchRow">
 
                     <TextView
                         style="@style/SettingsTitle"

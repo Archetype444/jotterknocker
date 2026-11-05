@@ -19,12 +19,12 @@
     <string name="long_press_to_enable">Zum Aktivieren lange drücken</string>
     <string name="no_hidden_apps">Keine versteckten Apps</string>
     <string name="hidden_apps">Versteckte Apps</string>
-    <string name="hidden_apps_message">Hinweis: Tippen Sie oben auf dieser Einstellungsseite auf „Scratchpad Launcher“, um Ihre versteckten Apps zu finden.
+    <string name="hidden_apps_message">Hinweis: Tippen Sie oben auf dieser Einstellungsseite auf „jotterknocker“, um Ihre versteckten Apps zu finden.
         \n\nWeitere Einzelheiten finden Sie auf der „Über“ Seite unten.</string>
     <string name="swipe_down_for">Wischen Sie nach unten für</string>
     <string name="search">Suchen</string>
     <string name="notifications">Benachrichtigungen</string>
-    <string name="accessibility_disclosure">Bitte schalten Sie den Barrierefreiheitsdienst von Scratchpad Launcher in den Einstellungen Ihres Geräts ein, um die Gesten Doppeltippen zum Sperren oder Home-Taste für letzte Apps zu aktivieren.\n\nBitte beachten Sie, dass dieser Dienst nur für diese Gesten verwendet wird. Unser Barrierefreiheitsdienst sammelt oder teilt keine Daten.</string>
+    <string name="accessibility_disclosure">Bitte schalten Sie den Barrierefreiheitsdienst von jotterknocker in den Einstellungen Ihres Geräts ein, um die Gesten Doppeltippen zum Sperren oder Home-Taste für letzte Apps zu aktivieren.\n\nBitte beachten Sie, dass dieser Dienst nur für diese Gesten verwendet wird. Unser Barrierefreiheitsdienst sammelt oder teilt keine Daten.</string>
     <string name="accept">Akzeptieren</string>
     <string name="permission">Erlaubnis</string>
     <string name="double_tap_lock">Zum Sperren zweimal tippen</string>
@@ -38,7 +38,7 @@
     <string name="enabled">Aktiviert</string>
     <string name="disabled">Deaktiviert</string>
     <string name="please_turn_on_double_tap_to_unlock">Zum Sperren bitte Doppeltippen aktivieren</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcher konnte das Gerät nicht sperren. Bitte überprüfen Sie Ihre App-Einstellungen.</string>
+    <string name="launcher_failed_to_lock_device">jotterknocker konnte das Gerät nicht sperren. Bitte überprüfen Sie Ihre App-Einstellungen.</string>
     <string name="long_press_to_select_app">Lange drücken, um die App auszuwählen</string>
     <string name="unable_to_open_app">App-Informationen können nicht geöffnet werden</string>
     <string name="copied">Kopiert</string>
@@ -48,7 +48,7 @@
     <string name="adapter_hide">Verstecken</string>
     <string name="app_text_color">Textfarbe</string>
     <string name="double_tap_to_lock_screen">Zum Sperren zweimal tippen</string>
-    <string name="admin_permission_message">Scratchpad Launcher verspricht, verantwortungsvoll mit der Sperrbildschirmberechtigung umzugehen. Scratchpad Launcher sammelt oder gibt keine Daten weiter.</string>
+    <string name="admin_permission_message">jotterknocker verspricht, verantwortungsvoll mit der Sperrbildschirmberechtigung umzugehen. jotterknocker sammelt oder gibt keine Daten weiter.</string>
     <string name="about">Über</string>
     <string name="off">Aus</string>
     <string name="on">Ein</string>
@@ -82,13 +82,13 @@
     <string name="light">Hell</string>
     <string name="welcome_to_olauncher_settings">Willkommen in den Einstellungen!
         \n\nDenken Sie daran, wenn Sie Fragen haben, unsere Seite „Über“ hat die Antwort.</string>
-    <string name="keyboard_message">Hallo, die Tastatur ist der schnellste Weg, Apps in Scratchpad Launcher zu finden und zu starten. Können wir Sie bitten, die Funktion noch ein paar Tage eingeschaltet zu lassen und dann zu entscheiden?
+    <string name="keyboard_message">Hallo, die Tastatur ist der schnellste Weg, Apps in jotterknocker zu finden und zu starten. Können wir Sie bitten, die Funktion noch ein paar Tage eingeschaltet zu lassen und dann zu entscheiden?
         \n\nDie Wahl liegt immer bei Ihnen.</string>
     <string name="digital_wellbeing_message">Wenn Sie Zeitlimits für bestimmte Apps festlegen möchten, kann Ihnen die Digital Wellbeing-Funktion von Android dabei helfen.
         \n\nBitte suchen Sie in Ihren Telefoneinstellungen nach Digital Wellbeing und aktivieren Sie es.</string>
     <string name="app_usage_message">Um die Bildschirmzeit auf dem Startbildschirm anzuzeigen oder zu verbergen, erteilen Sie bitte die Erlaubnis für die App-Nutzung oder verweigern Sie sie.
         \n\nHinweis: Es werden keine Daten zur App-Nutzung gesammelt. Alles wird auf Ihrem Gerät verarbeitet.</string>
-    <string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen und die Home-Taste zum Anzeigen der letzten Apps zu ermöglichen. Die von Scratchpad Launcher über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string>
+    <string name="accessibility_service_description">Die Zugriffsberechtigung ist erforderlich, um das Sperren durch Doppeltippen und die Home-Taste zum Anzeigen der letzten Apps zu ermöglichen. Die von jotterknocker über diesen Dienst erfassten Daten verlassen Ihr Gerät nicht.</string>
     <string name="open">Verbindung öffnen</string>
     <string name="copy">Kopieren</string>
     <string name="close">Schließen</string>
@@ -98,7 +98,7 @@
     <string name="date_only">Nur Datum</string>
     <string name="bottom_on">Unten: Ein</string>
     <string name="bottom_off">Unten: Aus</string>
-    <string name="please_set_olauncher_as_default_first">Bitte legen Sie zunächst Scratchpad Launcher als Ihren Standard-Launcher fest</string>
+    <string name="please_set_olauncher_as_default_first">Bitte legen Sie zunächst jotterknocker als Ihren Standard-Launcher fest</string>
     <string name="app_not_found">App nicht gefunden</string>
     <string name="unable_to_launch_app">App kann nicht gestartet werden</string>
     <string name="search_for_Launcher_or_home_app">Suchen Sie nach Launcher oder Home-App</string>
@@ -108,7 +108,7 @@
     <string name="swipe_right_app_disabled">App nach rechts wischen deaktiviert</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">Benutzen Sie Ihr Telefon, oder nutzt Ihr Telefon Sie?</string>
     <string name="screen_time">Bildschirmzeit</string>
-    <string name="about_olauncher">Über Scratchpad Launcher</string>
+    <string name="about_olauncher">Über jotterknocker</string>
     <string name="learn_more">Erfahren Sie mehr</string>
     <string name="alignment_changed">Ausrichtung geändert ✅</string>
     <string name="home_screen">Startbildschirm</string>

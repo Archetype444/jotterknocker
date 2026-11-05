@@ -100,7 +100,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         populateStatusBar()
         populateDateTime()
         populateSwipeApps()
-        populateSwipeDownAction()
         binding.appVersion.text = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}"
         initClickListeners()
         initObservers()
@@ -277,12 +276,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
 
             R.id.swipeLeftApp -> showAppListIfEnabled(Constants.FLAG_SET_SWIPE_LEFT_APP)
             R.id.swipeRightApp -> showAppListIfEnabled(Constants.FLAG_SET_SWIPE_RIGHT_APP)
-            R.id.swipeDownAction -> pick(
-                R.string.swipe_down_for,
-                listOf(getString(R.string.notifications) to Constants.SwipeDownAction.NOTIFICATIONS, getString(R.string.search) to Constants.SwipeDownAction.SEARCH),
-                prefs.swipeDownAction,
-            ) { updateSwipeDownAction(it) }
-
             R.id.share -> requireActivity().shareApp()
             R.id.syncFolder -> {
                 viewModel.isPickingDocument = true
@@ -334,7 +327,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
         listOf(
             binding.autoShowKeyboard, binding.scratchpadFont, binding.scratchpadAccent, binding.formatToolbarToggle,
             binding.toggleLock, binding.screenTimeOnOff, binding.alignment, binding.statusBar,
-            binding.dateTime, binding.swipeLeftApp, binding.swipeRightApp, binding.swipeDownAction, binding.appThemeText,
+            binding.dateTime, binding.swipeLeftApp, binding.swipeRightApp, binding.appThemeText,
             binding.textSizeValue, binding.scratchpadSizeValue, binding.scratchpadLineSpacing, binding.textColour, binding.appIcons, binding.homeWidget,
             binding.recentApps, binding.appSpacingValue, binding.appTextScaleValue, binding.homeBottomMarginValue,
             binding.homeColumnsValue, binding.dateTimeTop, binding.drawerCategories, binding.notePagesValue, binding.homePagesValue,
@@ -676,18 +669,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
     private fun populateLockSettings() {
         binding.toggleLock.isChecked = prefs.lockModeOn &&
                 (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || isAccessServiceEnabled(requireContext()))
-    }
-
-    private fun populateSwipeDownAction() {
-        binding.swipeDownAction.text = when (prefs.swipeDownAction) {
-            Constants.SwipeDownAction.NOTIFICATIONS -> getString(R.string.notifications)
-            else -> getString(R.string.search)
-        }
-    }
-
-    private fun updateSwipeDownAction(swipeDownFor: Int) {
-        prefs.swipeDownAction = swipeDownFor
-        populateSwipeDownAction()
     }
 
     private fun populateSwipeApps() {

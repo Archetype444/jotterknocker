@@ -20,6 +20,8 @@ def check(root=ROOT):
     assert 'HomeGridSizing.rowHeight' in home
     assert 'if (compact) 8 else prefs.homeBottomMargin' in home
     assert 'else 3)' in (java / 'data/Prefs.kt').read_text()
+    assert 'EXPAND_STATUS_BAR' not in (root / 'app/src/main/AndroidManifest.xml').read_text()
+    assert 'expandNotificationDrawer' not in home
     print('Fork contract verified: 15 slots, 3 columns, 5 rows, preserved area sizing.')
 
 

@@ -64,7 +64,6 @@ import app.olauncher.helper.Debouncer
 import app.olauncher.helper.MarkdownStyler
 import app.olauncher.helper.appUsagePermissionGranted
 import app.olauncher.helper.dpToPx
-import app.olauncher.helper.expandNotificationDrawer
 import app.olauncher.helper.getColorFromAttr
 import app.olauncher.helper.getUserHandleFromString
 import app.olauncher.helper.isPackageInstalled
@@ -237,7 +236,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         syncPollJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 delay(3000)
-                if (binding.scratchpad.isFocused || notePage != 0) continue
+                if (binding.scratchpad.isFocused || binding.scratchpad.isReadingScrollActive || notePage != 0) continue
                 ScratchpadSync.readIfChanged(requireContext(), prefs)?.let {
                     prefs.scratchpadText = it
                     binding.scratchpad.setText(it)
@@ -456,6 +455,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             // The note covers the top half, so home gestures also work on it while it's not being edited:
             // sideways always, up/down once the note can't scroll further that way.
             var flung = false
+            var multiTouch = false
             val noteGestures = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
                 override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
                     val dx = e2.x - (e1?.x ?: e2.x)
@@ -463,8 +463,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     flung = true
                     when {
                         abs(dx) > abs(dy) && abs(dx) > SWIPE_MIN_PX -> if (dx < 0) noteSwipe(left = true) else noteSwipe(left = false)
-                        dy < -SWIPE_MIN_PX && !pad.canScrollVertically(1) -> showAppList(Constants.FLAG_LAUNCH_APP)
-                        dy > SWIPE_MIN_PX && !pad.canScrollVertically(-1) -> swipeDownAction()
                         else -> flung = false
                     }
                     return flung
@@ -472,13 +470,14 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             })
             pad.setOnTouchListener { _, event ->
                 when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> { scrollOnDown = pad.scrollY; flung = false }
+                    MotionEvent.ACTION_DOWN -> { scrollOnDown = pad.scrollY; flung = false; multiTouch = false }
+                    MotionEvent.ACTION_POINTER_DOWN -> multiTouch = true
                     MotionEvent.ACTION_UP -> if (pad.isFocused && pad.scrollY != scrollOnDown) scrolledWhileEditing = true
                 }
-                if (!pad.isFocused) noteGestures.onTouchEvent(event)
+                if (!pad.isFocused && !multiTouch) noteGestures.onTouchEvent(event)
                 // A swipe that did something must not also focus the note (and raise the keyboard).
                 if (flung && event.actionMasked == MotionEvent.ACTION_UP) {
-                    pad.onTouchEvent(MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL })
+                    MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }.also { pad.onTouchEvent(it); it.recycle() }
                     return@setOnTouchListener true
                 }
                 false
@@ -660,6 +659,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (notePage == 0) ScratchpadSync.write(requireContext(), prefs, text)
         notePage = page
         prefs.scratchpadPage = page
+        binding.scratchpad.stopReadingScroll()
         binding.scratchpad.setText(prefs.getScratchpadPage(page))
         binding.scratchpad.scrollTo(0, 0)
         updatePageDots()
@@ -951,12 +951,6 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
-    private fun swipeDownAction() {
-        when (prefs.swipeDownAction) {
-            Constants.SwipeDownAction.SEARCH -> openSearch(requireContext())
-            else -> expandNotificationDrawer(requireContext())
-        }
-    }
 
     private fun lockPhone() {
         requireActivity().runOnUiThread {
@@ -1049,7 +1043,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onSwipeDown() {
                 super.onSwipeDown()
-                swipeDownAction()
+                // The notification shade belongs to Android's top-edge gesture.
             }
 
             override fun onLongClick() {
@@ -1097,7 +1091,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onSwipeDown() {
                 super.onSwipeDown()
-                swipeDownAction()
+                // The notification shade belongs to Android's top-edge gesture.
             }
 
             override fun onLongClick(view: View) {

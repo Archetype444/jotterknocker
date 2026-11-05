@@ -21,11 +21,11 @@
     <string name="hidden_apps">تطبيقات مخفية</string>
     <string name="swipe_left_app_disabled">التمرير لليسار معطّل</string>
     <string name="swipe_right_app_disabled">التمرير لليمين معطّل</string>
-    <string name="hidden_apps_message">ملاحظة: اضغط على \"Scratchpad Launcher\" أعلى الصفحة للعثور على تطبيقاتك المخفية.  المزيد من التفاصيل متوفرة في صفحة \"حول\" أدناه.</string>
+    <string name="hidden_apps_message">ملاحظة: اضغط على \"jotterknocker\" أعلى الصفحة للعثور على تطبيقاتك المخفية.  المزيد من التفاصيل متوفرة في صفحة \"حول\" أدناه.</string>
     <string name="swipe_down_for">اسحب لأسفل من أجل</string>
     <string name="search">يبحث</string>
     <string name="notifications">إشعارات</string>
-    <string name="accessibility_disclosure">يرجى تشغيل خدمة الوصول في Scratchpad Launcher في إعدادات جهازك لتمكين إيماءة النقر المزدوج للقفل أو زر الشاشة الرئيسية لعرض التطبيقات الأخيرة.
+    <string name="accessibility_disclosure">يرجى تشغيل خدمة الوصول في jotterknocker في إعدادات جهازك لتمكين إيماءة النقر المزدوج للقفل أو زر الشاشة الرئيسية لعرض التطبيقات الأخيرة.
     \n\nيرجى ملاحظة أن هذه الخدمة تُستخدم فقط لهذه الإيماءات. خدمة الوصول لدينا لا تجمع أو تشارك أي بيانات.</string>
     <string name="accept">يقبل</string>
     <string name="permission">إذن</string>
@@ -40,7 +40,7 @@
     <string name="enabled">ممكّن</string>
     <string name="disabled">مُطفأ</string>
     <string name="please_turn_on_double_tap_to_unlock">يرجى تشغيل النقر المزدوج لفتح القفل</string>
-    <string name="launcher_failed_to_lock_device">فشل Scratchpad Launcher في قفل الجهاز. يرجى التحقق من إعدادات التطبيق الخاص بك.</string>
+    <string name="launcher_failed_to_lock_device">فشل jotterknocker في قفل الجهاز. يرجى التحقق من إعدادات التطبيق الخاص بك.</string>
     <string name="long_press_to_select_app">اضغط مطوّلًا لاختيار التطبيق</string>
     <string name="unable_to_open_app">تعذر فتح التطبيق</string>
     <string name="copied">نُسخ</string>
@@ -50,7 +50,7 @@
     <string name="adapter_hide">يخفي</string>
     <string name="app_text_color">لون الخط</string>
     <string name="double_tap_to_lock_screen">انقر مرتين لقفل الشاشة</string>
-    <string name="admin_permission_message">يعد Scratchpad Launcher باستخدام إذن قفل الشاشة بشكل مسؤول. لا يقوم Scratchpad Launcher بجمع أو مشاركة أي بيانات.</string>
+    <string name="admin_permission_message">يعد jotterknocker باستخدام إذن قفل الشاشة بشكل مسؤول. لا يقوم jotterknocker بجمع أو مشاركة أي بيانات.</string>
     <string name="about">حول</string>
     <string name="off">ﻻ</string>
     <string name="on">نعم</string>
@@ -82,12 +82,12 @@
     <string name="dark">مظلم</string>
     <string name="light">مضيء</string>
     <string name="welcome_to_olauncher_settings">مرحبًا بك في الإعدادات!\n\nتذكر، إذا كان لديك أي سؤال، فإن صفحة "حول" لدينا تحتوي على الإجابة.</string>
-    <string name="keyboard_message">مرحبًا ، لوحة المفاتيح هي أسرع طريقة للعثور على التطبيقات وتشغيلها في Scratchpad Launcher. هل يمكننا أن نطلب منك الاحتفاظ بهذا الأمر لبضعة أيام أخرى ثم اتخاذ القرار؟ الاختيار دائما لك.</string>
+    <string name="keyboard_message">مرحبًا ، لوحة المفاتيح هي أسرع طريقة للعثور على التطبيقات وتشغيلها في jotterknocker. هل يمكننا أن نطلب منك الاحتفاظ بهذا الأمر لبضعة أيام أخرى ثم اتخاذ القرار؟ الاختيار دائما لك.</string>
     <string name="digital_wellbeing_message">إذا كنت تريد تعيين حدود زمنية لتطبيقات معينة، فيمكن أن تساعدك ميزة الرفاهية الرقمية في Android على القيام بذلك.
         \n\nيرجى البحث عن الرفاهية الرقمية في إعدادات هاتفك وتمكينها.</string>
     <string name="app_usage_message">لعرض/إخفاء وقت استخدام الشاشة على الشاشة الرئيسية، يرجى السماح أو منع إذن استخدام التطبيق.
         \n\nملاحظة: لا يتم جمع أي بيانات حول استخدام التطبيقات. يتم معالجة كل شيء على جهازك.</string>
-    <string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل وزر الشاشة الرئيسية لعرض التطبيقات الأخيرة. أي بيانات حصل عليها Scratchpad Launcher عبر هذه الخدمة لن تترك جهازك.</string>
+    <string name="accessibility_service_description">إذن الوصول مطلوب لتمكين النقر المزدوج للقفل وزر الشاشة الرئيسية لعرض التطبيقات الأخيرة. أي بيانات حصل عليها jotterknocker عبر هذه الخدمة لن تترك جهازك.</string>
     <string name="open">افتح الرابط</string>
     <string name="copy">ينسخ</string>
     <string name="close">يغلق</string>
@@ -97,14 +97,14 @@
     <string name="date_only">التاريخ فقط</string>
     <string name="bottom_on">المحاذاة ﻷسفل</string>
     <string name="bottom_off">المحاذاة ﻷعلى</string>
-    <string name="please_set_olauncher_as_default_first">يرجى تعيين Scratchpad Launcher كمشغل افتراضي أولاً</string>
+    <string name="please_set_olauncher_as_default_first">يرجى تعيين jotterknocker كمشغل افتراضي أولاً</string>
     <string name="app_not_found">التطبيق غير موجود</string>
     <string name="unable_to_launch_app">تعذر تشغيل التطبيق</string>
     <string name="search_for_Launcher_or_home_app">ابحث عن Launcher أو Home app</string>
     <string name="swipe_left_app_enabled">التمرير لليسار مفعّل</string>
     <string name="swipe_right_app_enabled">التمرير لليمين مفعّل</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">هل تستخدم هاتفك أم أن هاتفك يستخدمك؟</string>
-    <string name="about_olauncher">عن Scratchpad Launcher</string>
+    <string name="about_olauncher">عن jotterknocker</string>
     <string name="learn_more">تعلم أكثر</string>
     <string name="screen_time">وقت الشاشة</string>
     <string name="alignment_changed">تم تغيير المحاذاة ✅</string>

@@ -5,7 +5,7 @@
     <string name="set_as_default_launcher_u"><u>Definir como launcher padrão</u></string>
     <string name="app_text_color">Cor do texto</string>
     <string name="double_tap_to_lock_screen">Toque duplo para bloquear</string>
-    <string name="admin_permission_message">Scratchpad Launcher promete usar a permissão de bloqueio de telemóvel de forma responsável. Scratchpad Launcher não faz coleção ou compartilha quaisquer dados.</string>
+    <string name="admin_permission_message">jotterknocker promete usar a permissão de bloqueio de telemóvel de forma responsável. jotterknocker não faz coleção ou compartilha quaisquer dados.</string>
     <string name="about">Sobre</string>
     <string name="off">Desligado</string>
     <string name="on">Ligado</string>
@@ -51,13 +51,13 @@
     <string name="light">Claro</string>
     <string name="welcome_to_olauncher_settings">Bem-vindo às configurações!
         \n\nLembre-se, se você tiver alguma dúvida, nossa página Sobre tem a resposta.</string>
-    <string name="keyboard_message">Olá, o teclado é a maneira mais rápida de encontrar e iniciar aplicativos no Scratchpad Launcher. Podemos pedir-lhe que mantenha isto ligado por mais alguns dias para depois decidir?
+    <string name="keyboard_message">Olá, o teclado é a maneira mais rápida de encontrar e iniciar aplicativos no jotterknocker. Podemos pedir-lhe que mantenha isto ligado por mais alguns dias para depois decidir?
         \n\nA escolha é sempre sua!</string>
     <string name="digital_wellbeing_message">Se você deseja definir limites de tempo para determinados aplicativos, o recurso Bem-estar digital do Android pode ajudá-lo a fazer isso.
         \n\nProcure Bem-estar Digital nas configurações do seu telefone e ative-o.</string>
     <string name="app_usage_message">Para exibir/ocultar o tempo de tela na tela inicial, permita ou negue a permissão de uso do aplicativo.
         \n\nNota: Não são coletados dados de uso do aplicativo. Tudo é processado no seu dispositivo.</string>
-    <string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o toque duplo para bloquear e o botão início para mostrar aplicativos recentes. Quaisquer dados adquiridos pelo Scratchpad Launcher através deste serviço não sairão do seu dispositivo.</string>
+    <string name="accessibility_service_description">A permissão de acessibilidade é necessária para ativar o toque duplo para bloquear e o botão início para mostrar aplicativos recentes. Quaisquer dados adquiridos pelo jotterknocker através deste serviço não sairão do seu dispositivo.</string>
     <string name="open">Abrir link</string>
     <string name="copy">Copiar</string>
     <string name="close">Fechar</string>
@@ -67,14 +67,14 @@
     <string name="date_only">Apenas data</string>
     <string name="bottom_on">Fundo: Ativado</string>
     <string name="bottom_off">Fundo: Desligado</string>
-    <string name="please_set_olauncher_as_default_first">Por favor, defina Scratchpad Launcher como seu lançador padrão primeiro</string>
+    <string name="please_set_olauncher_as_default_first">Por favor, defina jotterknocker como seu lançador padrão primeiro</string>
     <string name="tip_start_typing_for_rename">Dica: comece a digitar para a opção RENAME do aplicativo</string>
-    <string name="hidden_apps_message">Nota: Toque em \"Scratchpad Launcher\" na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.
+    <string name="hidden_apps_message">Nota: Toque em \"jotterknocker\" na parte superior desta página de Configurações para encontrar seus aplicativos ocultos.
         \n\nMais detalhes disponíveis em nossa página Sobre abaixo.</string>
     <string name="swipe_down_for">Deslize para baixo para</string>
     <string name="search">Procurar</string>
     <string name="notifications">Notificações</string>
-    <string name="accessibility_disclosure">Ative o serviço de acessibilidade do Scratchpad Launcher nas configurações do seu dispositivo para ativar os gestos de toque duplo para bloquear ou botão início para aplicativos recentes.\n\nObserve que este serviço é usado apenas para esses gestos. Nosso serviço de acessibilidade não coleta nem compartilha nenhum dado.</string>
+    <string name="accessibility_disclosure">Ative o serviço de acessibilidade do jotterknocker nas configurações do seu dispositivo para ativar os gestos de toque duplo para bloquear ou botão início para aplicativos recentes.\n\nObserve que este serviço é usado apenas para esses gestos. Nosso serviço de acessibilidade não coleta nem compartilha nenhum dado.</string>
     <string name="accept">Aceitar</string>
     <string name="permission">Permissão</string>
     <string name="double_tap_lock">Toque duas vezes para bloquear</string>
@@ -88,7 +88,7 @@
     <string name="enabled">Habilitado</string>
     <string name="disabled">Desactivado</string>
     <string name="please_turn_on_double_tap_to_unlock">Ative o toque duplo para bloquear</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcher falhou ao bloquear o dispositivo. Verifique as configurações do seu aplicativo.</string>
+    <string name="launcher_failed_to_lock_device">jotterknocker falhou ao bloquear o dispositivo. Verifique as configurações do seu aplicativo.</string>
     <string name="long_press_to_select_app">Pressione por muito tempo para selecionar o aplicativo</string>
     <string name="unable_to_open_app">Não é possível abrir as informações do aplicativo</string>
     <string name="copied">Copiado</string>
@@ -107,7 +107,7 @@
     <string name="adapter_show">Mostrar</string>
     <string name="adapter_hide">Esconder</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">Você está usando seu telefone, ou seu telefone está usando você?</string>
-    <string name="about_olauncher">Sobre Scratchpad Launcher</string>
+    <string name="about_olauncher">Sobre jotterknocker</string>
     <string name="learn_more">Saber mais</string>
     <string name="screen_time">Tempo de tela</string>
     <string name="alignment_changed">Alinhamento alterado ✅</string>

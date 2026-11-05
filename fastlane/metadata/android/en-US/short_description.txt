@@ -1,1 +1,1 @@
-A minimal launcher with an always-visible scratchpad. Zero ads.
+Personal fork of Scratchpad Launcher.

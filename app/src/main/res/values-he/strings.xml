@@ -1,10 +1,10 @@
 <resources>
     <string name="app">יישום</string>
     <string name="set_as_default_launcher">הגדרה בתור משגר ברירת המחדל</string>
-    <string name="set_as_default_launcher_u">הגדר תחילה את Scratchpad Launcher כברירת מחדל</string>
+    <string name="set_as_default_launcher_u">הגדר תחילה את jotterknocker כברירת מחדל</string>
     <string name="app_text_color">צבע הטקסט</string>
     <string name="double_tap_to_lock_screen">נעילת המסך בהקשה כפולה</string>
-    <string name="admin_permission_message">יישום Scratchpad Launcher ישתמש בהרשאה של נעילת המסך באופן מתון. יישום Scratchpad Launcher אינו אוסף או משתף נתונים כלל.</string>
+    <string name="admin_permission_message">יישום jotterknocker ישתמש בהרשאה של נעילת המסך באופן מתון. יישום jotterknocker אינו אוסף או משתף נתונים כלל.</string>
     <string name="about">מידע כללי</string>
     <string name="off">כבוי</string>
     <string name="on">מופעל</string>
@@ -49,9 +49,9 @@
     <string name="light">בהירה</string>
     <string name="welcome_to_olauncher_settings">למטה מופיע קישור לעמוד "מידע כללי", ובו אפשר למצוא תשובות לכל השאלות. לא לשכוח :)
         \n\nThank you.</string>
-    <string name="keyboard_message">היי, יותר מהיר למצוא ולפתוח יישומים ב־Scratchpad Launcher בעזרת ההקלדה. אולי בכל זאת היית רוצה להשאיר את ההגדרה הזאת ולתת לה עוד הזדמנות?
+    <string name="keyboard_message">היי, יותר מהיר למצוא ולפתוח יישומים ב־jotterknocker בעזרת ההקלדה. אולי בכל זאת היית רוצה להשאיר את ההגדרה הזאת ולתת לה עוד הזדמנות?
         \n\nThe choice is always yours.</string>
-    <string name="accessibility_service_description">הרשאת הנגישות נחוצה להפעלת הנעילה בהקשה כפולה ולחצן הבית להצגת אפליקציות אחרונות. כל הנתונים שייאספו על ידי Scratchpad Launcher דרך השירות הזה לא יועברו הלאה ממכשירך.</string>
+    <string name="accessibility_service_description">הרשאת הנגישות נחוצה להפעלת הנעילה בהקשה כפולה ולחצן הבית להצגת אפליקציות אחרונות. כל הנתונים שייאספו על ידי jotterknocker דרך השירות הזה לא יועברו הלאה ממכשירך.</string>
     <string name="open">פתיחת קישור</string>
     <string name="copy">העתקה</string>
     <string name="close">סגירה</string>
@@ -61,13 +61,13 @@
     <string name="date_only">תאריך בלבד</string>
     <string name="bottom_on">הצגה למטה: מופעל</string>
     <string name="bottom_off">הצגה למטה: כבוי</string>
-    <string name="please_set_olauncher_as_default_first">ראשית, נא להגדיר את Scratchpad Launcher בתור ברירת המחדל למסך בית.</string>
+    <string name="please_set_olauncher_as_default_first">ראשית, נא להגדיר את jotterknocker בתור ברירת המחדל למסך בית.</string>
     <string name="tip_start_typing_for_rename">עצה: אפשר להתחיל להקליד בשביל להגיע לאפשרות לשינוי שם של יישומים</string>
-    <string name="hidden_apps_message">הערה: בשביל להגיע ליישומים המוסתרים, יש ללחוץ על הכיתוב \'Scratchpad Launcher\' שנמצא בראש עמוד ההגדרות.\n\nפרטים נוספים אפשר למצוא בעמוד ה"מידע כללי" שלנו למטה.</string>
+    <string name="hidden_apps_message">הערה: בשביל להגיע ליישומים המוסתרים, יש ללחוץ על הכיתוב \'jotterknocker\' שנמצא בראש עמוד ההגדרות.\n\nפרטים נוספים אפשר למצוא בעמוד ה"מידע כללי" שלנו למטה.</string>
     <string name="swipe_down_for">פעולה בעת החלקה למטה</string>
     <string name="search">חיפוש</string>
     <string name="notifications">התראות</string>
-    <string name="accessibility_disclosure">נא להפעיל את שירות הנגישות של Scratchpad Launcher בהגדרות המכשיר שלך כדי להפעיל את מחוות הנעילה בהקשה כפולה או לחצן הבית לאפליקציות אחרונות.\n\nשימו לב ששירות זה משמש רק למחוות אלה. שירות הנגישות שלנו אינו אוסף או משתף נתונים כלשהם.</string>
+    <string name="accessibility_disclosure">נא להפעיל את שירות הנגישות של jotterknocker בהגדרות המכשיר שלך כדי להפעיל את מחוות הנעילה בהקשה כפולה או לחצן הבית לאפליקציות אחרונות.\n\nשימו לב ששירות זה משמש רק למחוות אלה. שירות הנגישות שלנו אינו אוסף או משתף נתונים כלשהם.</string>
     <string name="accept">הסכמה</string>
     <string name="permission">הרשאה</string>
     <string name="double_tap_lock">לחיצה כפולה לנעילת המסך</string>
@@ -81,7 +81,7 @@
     <string name="enabled">מופעל</string>
     <string name="disabled">מושבת</string>
     <string name="please_turn_on_double_tap_to_unlock">נא להפעיל את מחוות ההקשה הכפולה בשביל לצורך הנעילה</string>
-    <string name="launcher_failed_to_lock_device">ל־Scratchpad Launcher אין אפשרות לנעול את המסך.\nנא לבדוק את הגדרות היישום.</string>
+    <string name="launcher_failed_to_lock_device">ל־jotterknocker אין אפשרות לנעול את המסך.\nנא לבדוק את הגדרות היישום.</string>
     <string name="long_press_to_select_app">לבחירת יישום יש ללחוץ לחיצה ארוכה</string>
     <string name="unable_to_open_app">אין אפשרות לפתוח את המידע על היישום</string>
     <string name="copied">הועתק ללוח</string>

@@ -5,7 +5,7 @@
     <string name="set_as_default_launcher_u"><u>Зробити лаунчером за замовчування</u></string>
     <string name="app_text_color">Кольор тексту</string>
     <string name="double_tap_to_lock_screen">Блокування подвійним тапом</string>
-    <string name="admin_permission_message">Scratchpad Launcher обіцяє відповідально використовувати роздільну здатність екрана блокування. Scratchpad Launcher не збирає і не передає будь-які дані.</string>
+    <string name="admin_permission_message">jotterknocker обіцяє відповідально використовувати роздільну здатність екрана блокування. jotterknocker не збирає і не передає будь-які дані.</string>
     <string name="about">Про нас</string>
     <string name="off">Викл</string>
     <string name="on">Вкл</string>
@@ -51,13 +51,13 @@
     <string name="light">Світла</string>
     <string name="welcome_to_olauncher_settings">Ласкаво просимо до налаштувань!
         \n\nПам\'ятайте, якщо у вас є питання, на нашій сторінці «Про нас» є відповідь.</string>
-    <string name="keyboard_message">Привіт, клавіатура - це найшвидший спосіб знайти та запустити програми в Scratchpad Launcher. Чи можемо ми попросити вас залишити це увімкненим ще на кілька днів, а потім прийняти рішення?
+    <string name="keyboard_message">Привіт, клавіатура - це найшвидший спосіб знайти та запустити програми в jotterknocker. Чи можемо ми попросити вас залишити це увімкненим ще на кілька днів, а потім прийняти рішення?
         \n\nВибір завжди за вами.</string>
     <string name="digital_wellbeing_message">Якщо ви хочете встановити часові обмеження для певних програм, функція цифрового добробуту Android може допомогти вам це зробити.
         \n\nЗнайдіть Digital Wellbeing у налаштуваннях телефону та ввімкніть його.</string>
     <string name="app_usage_message">Щоб показати/ховати час роботи з екраном на головному екрані, будь ласка, дозвольте або забороніть дозвіл на використання програми.
         \n\nПримітка: Не збираються дані про використання програми. Все обробляється на вашому пристрої.</string>
-    <string name="accessibility_service_description">Дозвіл на доступ потрібний, щоб увімкнути подвійне торкання для блокування та кнопку «Домому» для показу нещодавніх додатків. Будь-які дані, отримані Scratchpad Launcher через цей сервіс, не залишать ваш пристрій.</string>
+    <string name="accessibility_service_description">Дозвіл на доступ потрібний, щоб увімкнути подвійне торкання для блокування та кнопку «Домому» для показу нещодавніх додатків. Будь-які дані, отримані jotterknocker через цей сервіс, не залишать ваш пристрій.</string>
     <string name="open">Відкрити посилання</string>
     <string name="copy">Копіювати</string>
     <string name="close">Закрити</string>
@@ -67,14 +67,14 @@
     <string name="date_only">Толільки дата</string>
     <string name="bottom_on">Внизу: Вкл</string>
     <string name="bottom_off">Внизу: Викл</string>
-    <string name="please_set_olauncher_as_default_first">Спочатку встановіть Scratchpad Launcher як стандартний лаунчер.</string>
+    <string name="please_set_olauncher_as_default_first">Спочатку встановіть jotterknocker як стандартний лаунчер.</string>
     <string name="tip_start_typing_for_rename">Порада: почніть вводити текст, щоб перейменувати програму.</string>
-    <string name="hidden_apps_message">Примітка. Натисніть «Scratchpad Launcher» у верхній частині сторінки налаштувань, щоб знайти приховані програми.
+    <string name="hidden_apps_message">Примітка. Натисніть «jotterknocker» у верхній частині сторінки налаштувань, щоб знайти приховані програми.
         \n\nДокладніша інформація доступна на нашій сторінці «Про нас» нижче.</string>
     <string name="swipe_down_for">Проведіть вниз для</string>
     <string name="search">Пошук</string>
     <string name="notifications">Повідомлення</string>
-    <string name="accessibility_disclosure">Увімкніть службу доступності Scratchpad Launcher у налаштуваннях Вашого пристрою, щоб увімкнути жести подвійного торкання для блокування або кнопки «Домому» для нещодавніх додатків.\n\nЗверніть увагу, що ця служба використовується лише для цих жестів. Наша служба доступності не збирає та не поширює жодних даних.</string>
+    <string name="accessibility_disclosure">Увімкніть службу доступності jotterknocker у налаштуваннях Вашого пристрою, щоб увімкнути жести подвійного торкання для блокування або кнопки «Домому» для нещодавніх додатків.\n\nЗверніть увагу, що ця служба використовується лише для цих жестів. Наша служба доступності не збирає та не поширює жодних даних.</string>
     <string name="accept">Прийняти</string>
     <string name="permission">Дозвіл</string>
     <string name="double_tap_lock">Блокування подвійним дотиком</string>
@@ -88,7 +88,7 @@
     <string name="enabled">Включено</string>
     <string name="disabled">Виключено</string>
     <string name="please_turn_on_double_tap_to_unlock">Будь ласка, увімкніть подвійний дотик для блокування</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcher не вдалося заблокувати пристрій.\nБудь ласка, перевірте налаштування вашої програми.</string>
+    <string name="launcher_failed_to_lock_device">jotterknocker не вдалося заблокувати пристрій.\nБудь ласка, перевірте налаштування вашої програми.</string>
     <string name="long_press_to_select_app">Тривале натискання для вибору програми</string>
     <string name="unable_to_open_app">Неможливо відкрити інформацію про програму</string>
     <string name="copied">Скопійовано</string>
@@ -107,7 +107,7 @@
     <string name="adapter_show">Показати</string>
     <string name="adapter_hide">Приховати</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">Ви користуєтеся своїм телефоном, чи ваш телефон використовує вас?</string>
-    <string name="about_olauncher">Про нас Scratchpad Launcher</string>
+    <string name="about_olauncher">Про нас jotterknocker</string>
     <string name="learn_more">Вивчайте більше</string>
     <string name="screen_time">Час екрану</string>
     <string name="alignment_changed">Вирівнювання змінено ✅</string>

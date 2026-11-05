@@ -5,7 +5,7 @@
     <string name="set_as_default_launcher_u"><u>Postavi kao zadani pokretač</u></string>
     <string name="app_text_color">Boja teksta</string>
     <string name="double_tap_to_lock_screen">Dvostruki dodir za zaključavanje</string>
-    <string name="admin_permission_message">Scratchpad Launcher obećava da će odgovorno koristiti dozvolu za zaključavanje zaslona.</string>
+    <string name="admin_permission_message">jotterknocker obećava da će odgovorno koristiti dozvolu za zaključavanje zaslona.</string>
     <string name="about">Informacije</string>
     <string name="off">Isklj.</string>
     <string name="on">Uklj.</string>
@@ -50,7 +50,7 @@
     <string name="light">Svijetla</string>
     <string name="welcome_to_olauncher_settings">Dobrodošli u postavke!
         \n\nZapamtite, ako imate bilo kakvih pitanja, naša stranica O nama ima odgovor.</string>
-    <string name="keyboard_message">Bok, tipkovnica je najbrži način za pronalaženje i pokretanje aplikacija u Scratchpad Launcheru. Možemo li vas zamoliti da to zadržite uključeno još nekoliko dana, a zatim odlučite?
+    <string name="keyboard_message">Bok, tipkovnica je najbrži način za pronalaženje i pokretanje aplikacija u jotterknockeru. Možemo li vas zamoliti da to zadržite uključeno još nekoliko dana, a zatim odlučite?
         \n\nIzbor je uvijek vaš.</string>
     <string name="digital_wellbeing_message">Ako želite postaviti vremenska ograničenja za određene aplikacije, značajka Digital Wellbeing na Androidu može vam pomoći u tome.
         \n\nPotražite Digital Wellbeing u postavkama telefona i omogućite ga.</string>
@@ -66,15 +66,15 @@
     <string name="date_only">Samo datum</string>
     <string name="bottom_on">Dno: uklj.</string>
     <string name="bottom_off">Dno: isklj.</string>
-    <string name="please_set_olauncher_as_default_first">Prvo postavite Scratchpad Launcher kao zadani pokretač</string>
+    <string name="please_set_olauncher_as_default_first">Prvo postavite jotterknocker kao zadani pokretač</string>
     <string name="tip_start_typing_for_rename">Savjet: počni pisati za opciju preimenovanja aplikacija</string>
-    <string name="hidden_apps_message">Pazi: Dodirni \'Scratchpad Launcher\' na vrhu da pronađeš svoje skrivene aplikacije.\n\nViše detalja dostupno dolje na našoj stranici Informacije.</string>
+    <string name="hidden_apps_message">Pazi: Dodirni \'jotterknocker\' na vrhu da pronađeš svoje skrivene aplikacije.\n\nViše detalja dostupno dolje na našoj stranici Informacije.</string>
     <string name="swipe_down_for">Povuci prema dolje za</string>
     <string name="search">Pretraživanje</string>
     <string name="notifications">Obavijesti</string>
     <string name="learn_more">Saznajte više</string>
     <string name="screen_time">Vrijeme na ekranu</string>
-    <string name="accessibility_disclosure">Molimo vas da uključite Scratchpad Launcherovu uslugu pristupa u postavkama vašeg uređaja kako biste omogućili geste dvostrukog dodira za zaključavanje ili tipke Početna za prikaz nedavnih aplikacija.\n\nImajte na umu da se ova usluga koristi samo za te geste. Naša usluga pristupa ne prikuplja niti dijeli bilo kakve podatke.</string>
+    <string name="accessibility_disclosure">Molimo vas da uključite jotterknockerovu uslugu pristupa u postavkama vašeg uređaja kako biste omogućili geste dvostrukog dodira za zaključavanje ili tipke Početna za prikaz nedavnih aplikacija.\n\nImajte na umu da se ova usluga koristi samo za te geste. Naša usluga pristupa ne prikuplja niti dijeli bilo kakve podatke.</string>
     <string name="accept">Prihvati</string>
     <string name="permission">Dozvola</string>
     <string name="double_tap_lock">Dvostruki dodir za zaključavanje</string>
@@ -88,7 +88,7 @@
     <string name="enabled">Omogućeno</string>
     <string name="disabled">Onemogućeno</string>
     <string name="please_turn_on_double_tap_to_unlock">Molimo vas da uključite dvostruki dodir za otključavanje</string>
-    <string name="launcher_failed_to_lock_device">Scratchpad Launcher nije uspio zaključati uređaj.\nMolimo provjerite postavke aplikacije.</string>
+    <string name="launcher_failed_to_lock_device">jotterknocker nije uspio zaključati uređaj.\nMolimo provjerite postavke aplikacije.</string>
     <string name="long_press_to_select_app">Dugo pritisnite za odabir aplikacije</string>
     <string name="unable_to_open_app">Nije moguće otvoriti informacije o aplikaciji</string>
     <string name="copied">Kopirano</string>
@@ -107,7 +107,7 @@
     <string name="adapter_show">Prikaži</string>
     <string name="adapter_hide">Sakrij</string>
     <string name="are_you_using_your_phone_or_is_your_phone_using_you">Koristite li svoj telefon ili vaš telefon koristi vas?</string>
-    <string name="about_olauncher">O Scratchpad Launcher-u i ČPP</string>
+    <string name="about_olauncher">O jotterknocker-u i ČPP</string>
     <string name="alignment_changed">Poravnanje promijenjeno ✅</string>
     <string name="home_screen">Početni ekran</string>
     <string name="hey">Bok</string>
