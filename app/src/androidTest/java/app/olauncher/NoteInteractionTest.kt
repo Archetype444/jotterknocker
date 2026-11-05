@@ -8,10 +8,13 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.test.core.app.ActivityScenario
@@ -34,6 +37,7 @@ class NoteInteractionTest {
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private lateinit var scenario: ActivityScenario<MainActivity>
     private var gestureStart = 0L
+    private val appNames = listOf("Browser", "Files", "Calendar", "Messages", "Photos", "Music", "Maps", "Mail", "Notes", "Camera", "Contacts", "Clock", "Settings", "Reader", "Tasks")
     private val note = "# A quiet place to think\n\n- [ ] Keep the note still\n\n[Example](https://example.com)\n\n" +
         (1..400).joinToString("\n") { "Line $it — a long note for smooth scrolling." }
 
@@ -51,9 +55,12 @@ class NoteInteractionTest {
             appSpacing = 1f
             appTextScale = 1f
             homeBottomMargin = 56
-            dateTimeVisibility = 0
+            dateTimeVisibility = 1
+            dateTimeTop = false
+            recentAppsColumn = 0
             showStatusBar = true
             lockModeOn = false
+            appNames.forEachIndexed { index, name -> setHomeApp(index + 1, name, "com.android.settings", "", null, null) }
         }
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java))
         instrumentation.waitForIdleSync()
@@ -104,6 +111,30 @@ class NoteInteractionTest {
             assertFalse("Scrolling focused the editor", pad.isFocused)
             assertEquals(note, pad.text.toString())
             assertFalse("Scrolling opened the keyboard", ViewCompat.getRootWindowInsets(pad)?.isVisible(WindowInsetsCompat.Type.ime()) == true)
+        }
+    }
+
+    @Test fun fifteenAppsStayInThreeColumnsOfFiveBelowTheNote() {
+        onNote { activity, pad ->
+            val grid = activity.findViewById<LinearLayout>(R.id.homeAppsGrid)
+            val controls = activity.findViewById<View>(R.id.homeControls)
+            val rootBounds = Rect().also { pad.rootView.getGlobalVisibleRect(it) }
+            val noteBounds = Rect().also { pad.getGlobalVisibleRect(it) }
+            val controlBounds = Rect().also { controls.getGlobalVisibleRect(it) }
+            assertEquals(3, grid.childCount)
+            assertTrue("Note has no reading space", pad.height > pad.totalPaddingTop + pad.textSize * 2)
+            assertTrue("Apps overlap the note", controlBounds.top >= noteBounds.bottom)
+            repeat(3) { c ->
+                val column = grid.getChildAt(c) as LinearLayout
+                assertEquals(5, column.childCount)
+                repeat(5) { row ->
+                    val label = column.getChildAt(row) as TextView
+                    assertEquals(appNames[c * 5 + row], label.text.toString())
+                    val bounds = Rect().also { assertTrue(label.getGlobalVisibleRect(it)) }
+                    assertEquals("App label was clipped", label.height, bounds.height())
+                    assertTrue(bounds.bottom <= rootBounds.bottom)
+                }
+            }
         }
     }
 

@@ -491,7 +491,7 @@
                 android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:textSize="12sp"
-                tools:text="Scratchpad Launcher 2026.10.0" />
+                tools:text="jotterknocker 2026.11.1" />
 
         </LinearLayout>
 

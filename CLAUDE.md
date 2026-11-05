@@ -11,7 +11,8 @@ Single Gradle module (`app`), Kotlin. GitHub Actions builds releases and runs un
 - `just lint` — Android lint
 - `just run` — install debug build on connected device/emulator and launch it
 - `just clean`
-- `just release [VERSION]` — CalVer `YYYY.M.N` (N = nth release that month, from 0; pass VERSION to override), bump `versionCode`/`versionName`, write a changelog from commit subjects since the last tag unless a hand-written one already exists (`fastlane/.../changelogs/<versionCode>.txt`, also used as the GitHub release notes), build a signed release APK, tag `vYYYY.M.N`, push, publish a GitHub release. F-Droid (merged into `fdroiddata`, MR !45012) auto-detects the new tag, so no metadata step here. Reads signing credentials from `~/keys/scratchpad-launcher/credentials.env` (keystore + password/alias env vars, see `app/build.gradle`'s `signingConfigs.release`).
+- `just release` — build an unsigned release and run unit tests and release lint. The GitHub release workflow also runs the Android interaction suite. Sign the validated APK with the existing private fork key, verify its certificate, then publish it to this fork. Keep signing credentials out of git.
+
 
 Java 21 / compileSdk 35 / minSdk 24. No ktlint/detekt configured — `just lint` is Android Lint only.
 

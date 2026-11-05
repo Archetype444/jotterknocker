@@ -281,7 +281,7 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
             }
             R.id.backupScratchpad -> {
                 viewModel.isPickingDocument = true
-                exportScratchpad.launch("scratchpad-launcher-backup.json")
+                exportScratchpad.launch("jotterknocker-backup.json")
             }
             R.id.restoreScratchpad -> {
                 viewModel.isPickingDocument = true
