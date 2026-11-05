@@ -45,7 +45,6 @@ jobs:
           retention-days: 14
 
   emulator-tests:
-    needs: unit-and-lint
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
@@ -86,6 +85,7 @@ jobs:
           api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
+          profile: pixel_7_pro
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash scripts/run-emulator-tests.sh ${{ matrix.api }} ${{ matrix.resolution }} ${{ matrix.density }} ${{ matrix.font }}

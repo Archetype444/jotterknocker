@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -30,7 +31,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 /** Real Android touch dispatch through HomeFragment's listeners and the text widget. */
 @RunWith(AndroidJUnit4::class)
@@ -120,6 +120,8 @@ class NoteInteractionTest {
     }
 
     @Test fun fifteenAppsStayInThreeColumnsOfFiveBelowTheNote() {
+        val preview = instrumentation.uiAutomation.executeShellCommand("screencap -p /data/local/tmp/jotterknocker-preview.png")
+        ParcelFileDescriptor.AutoCloseInputStream(preview).use { it.readBytes() }
         onNote { activity, pad ->
             val grid = activity.findViewById<LinearLayout>(R.id.homeAppsGrid)
             val controls = activity.findViewById<View>(R.id.homeControls)
@@ -127,7 +129,8 @@ class NoteInteractionTest {
             val noteBounds = Rect().also { pad.getGlobalVisibleRect(it) }
             val controlBounds = Rect().also { controls.getGlobalVisibleRect(it) }
             assertEquals(3, grid.childCount)
-            assertTrue("Note has no reading space", pad.height > pad.totalPaddingTop + pad.textSize * 2)
+            assertTrue("Note has no reading space: root=$rootBounds, note=$noteBounds, controls=$controlBounds, padding=${pad.totalPaddingTop}",
+                pad.height > pad.totalPaddingTop + pad.totalPaddingBottom + pad.textSize * 2)
             assertTrue("Apps overlap the note", controlBounds.top >= noteBounds.bottom)
             repeat(3) { c ->
                 val column = grid.getChildAt(c) as LinearLayout
@@ -153,30 +156,42 @@ class NoteInteractionTest {
         assertReading()
     }
 
-    @Test fun fastFlingCoastsAndTouchStopsItWithoutOpeningTheEditor() {
+    private fun flickUp(pad: MarkdownEditText): Int {
+        // Dispatch the flick in one UI call so emulator delays don't turn it into a paused drag.
+        val x = pad.width * 0.6f
+        val viewport = pad.height - pad.totalPaddingTop - pad.totalPaddingBottom
+        assertTrue("Flick needs a visible note, viewport=$viewport", viewport > 0)
+        val start = pad.totalPaddingTop + viewport * 0.85f
+        val end = pad.totalPaddingTop + viewport * 0.15f
+        val down = SystemClock.uptimeMillis() - 48L
+        dispatch(pad, MotionEvent.ACTION_DOWN, x, start, down, down)
+        for (i in 1..5) dispatch(pad, MotionEvent.ACTION_MOVE, x, start + (end - start) * i / 5, down, down + 8L * i)
+        dispatch(pad, MotionEvent.ACTION_UP, x, end, down, down + 48L)
+        assertTrue("Flick did not start a fling at ${pad.scrollY} of ${pad.maximumNoteScroll}", pad.isReadingScrollActive)
+        return pad.scrollY
+    }
+
+    @Test fun fastFlingCoastsWithoutOpeningTheEditor() {
         var atRelease = 0
-        onNote { _, pad ->
-            // Dispatch a whole flick in one UI call. Between separate calls, a busy emulator can
-            // insert >40ms gaps, at which point Android correctly sees a pause instead of a flick.
-            val x = pad.width * 0.6f
-            val viewport = pad.height - pad.totalPaddingTop - pad.totalPaddingBottom
-            val start = pad.totalPaddingTop + viewport * 0.85f
-            val end = pad.totalPaddingTop + viewport * 0.15f
-            val down = SystemClock.uptimeMillis() - 48L
-            dispatch(pad, MotionEvent.ACTION_DOWN, x, start, down, down)
-            for (i in 1..5) dispatch(pad, MotionEvent.ACTION_MOVE, x, start + (end - start) * i / 5, down, down + 8L * i)
-            dispatch(pad, MotionEvent.ACTION_UP, x, end, down, down + 48L)
-            atRelease = pad.scrollY
-            assertTrue("Flick did not start a fling at $atRelease of ${pad.maximumNoteScroll}", pad.isReadingScrollActive)
-        }
+        onNote { _, pad -> atRelease = flickUp(pad) }
         SystemClock.sleep(250)
         onNote { _, pad -> assertTrue("No inertial scrolling after release: $atRelease to ${pad.scrollY}", pad.scrollY > atRelease + 30) }
         assertReading()
+    }
+
+    @Test fun touchingAnActiveFlingStopsItWithoutOpeningTheEditor() {
         var x = 0f; var y = 0f
-        onNote { _, pad -> x = pad.width * 0.6f; y = (pad.height + pad.totalPaddingTop) / 2f }
-        tap(x, y)
         var stopped = 0
-        onNote { _, pad -> stopped = pad.scrollY }
+        onNote { _, pad ->
+            stopped = flickUp(pad)
+            x = pad.width * 0.6f
+            y = (pad.height + pad.totalPaddingTop - pad.totalPaddingBottom) / 2f
+            val now = SystemClock.uptimeMillis()
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, y, now, now)
+            dispatch(pad, MotionEvent.ACTION_UP, x, y, now, now + 10L)
+            assertFalse("Tap didn't stop the fling", pad.isReadingScrollActive)
+            assertFalse("Tap during momentum entered the editor", pad.isFocused)
+        }
         SystemClock.sleep(200)
         onNote { _, pad -> assertEquals(stopped, pad.scrollY) }
         assertReading()
@@ -286,9 +301,10 @@ class NoteInteractionTest {
 
     @Test fun scrollbarFadesAndIsClippedInsideNote() {
         swipe(pauseAtEnd = true)
-        fun barPixels(): Int {
+        fun barPixels(reveal: Boolean = false): Int {
             var count = 0
             onNote { _, pad ->
+                if (reveal) pad.scrollTo(0, pad.scrollY + 10)
                 val image = Bitmap.createBitmap(pad.width, pad.height, Bitmap.Config.ARGB_8888)
                 pad.draw(Canvas(image))
                 val x = (10 * pad.resources.displayMetrics.density).toInt()
@@ -302,13 +318,12 @@ class NoteInteractionTest {
             }
             return count
         }
-        onNote { _, pad -> pad.scrollTo(0, pad.scrollY + 10) }
-        assertTrue("Scrollbar never appeared", barPixels() > 0)
+        assertTrue("Scrollbar never appeared", barPixels(reveal = true) > 0)
         SystemClock.sleep(450)
         assertEquals("Scrollbar did not fade", 0, barPixels())
     }
 
-    @Test fun largeNoteRemainsScrollableAfterRotationAndProducesAPreview() {
+    @Test fun largeNoteRemainsScrollableAfterRotation() {
         scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
         val deadline = SystemClock.uptimeMillis() + 6000
         var landscape = false
@@ -320,13 +335,5 @@ class NoteInteractionTest {
         swipe(pauseAtEnd = true)
         assertReading()
         scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
-        SystemClock.sleep(350)
-        onNote { _, pad ->
-            val image = Bitmap.createBitmap(pad.rootView.width, pad.rootView.height, Bitmap.Config.ARGB_8888)
-            pad.rootView.draw(Canvas(image))
-            val path = File(instrumentation.targetContext.filesDir, "jotterknocker-preview.png")
-            path.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            image.recycle()
-        }
     }
 }

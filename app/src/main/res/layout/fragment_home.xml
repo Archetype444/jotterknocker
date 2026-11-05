@@ -43,7 +43,8 @@
             android:inputType="textMultiLine|textCapSentences"
             android:shadowDy="0"
             android:overScrollMode="never"
-            android:paddingHorizontal="24dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
             android:paddingTop="56dp"
             android:saveEnabled="false"
             android:textColor="?attr/primaryColor"
@@ -79,7 +80,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
             android:paddingTop="8dp"
             android:paddingBottom="56dp">
 
