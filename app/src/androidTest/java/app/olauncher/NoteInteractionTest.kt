@@ -10,6 +10,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.SystemClock
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -64,6 +65,8 @@ class NoteInteractionTest {
         }
         scenario = ActivityScenario.launch(Intent(context, MainActivity::class.java))
         instrumentation.waitForIdleSync()
+        // Let the first home layout transition finish before measuring touch motion.
+        SystemClock.sleep(350)
         onNote { activity, pad -> activity.findViewById<View>(R.id.mainLayout).requestFocus(); pad.scrollTo(0, 0) }
     }
 
@@ -75,14 +78,15 @@ class NoteInteractionTest {
 
     private fun send(action: Int, x: Float, y: Float) {
         if (action == MotionEvent.ACTION_DOWN) gestureStart = SystemClock.uptimeMillis()
-        onNote { _, pad ->
-            val event = MotionEvent.obtain(gestureStart, SystemClock.uptimeMillis(), action, x, y, 0)
-            pad.dispatchTouchEvent(event)
-            event.recycle()
-        }
+        onNote { _, pad -> dispatch(pad, action, x, y, gestureStart, SystemClock.uptimeMillis()) }
     }
 
-    private fun swipe(up: Boolean = true, fast: Boolean = false, pauseAtEnd: Boolean = false) {
+    private fun dispatch(pad: MarkdownEditText, action: Int, x: Float, y: Float, downTime: Long, eventTime: Long) {
+        val event = MotionEvent.obtain(downTime, eventTime, action, x, y, 0).apply { source = InputDevice.SOURCE_TOUCHSCREEN }
+        try { pad.dispatchTouchEvent(event) } finally { event.recycle() }
+    }
+
+    private fun swipe(up: Boolean = true, pauseAtEnd: Boolean = false) {
         var x = 0f; var start = 0f; var end = 0f
         onNote { _, pad ->
             x = pad.width * 0.6f
@@ -91,13 +95,14 @@ class NoteInteractionTest {
             end = pad.totalPaddingTop + viewport * if (up) 0.15f else 0.85f
         }
         send(MotionEvent.ACTION_DOWN, x, start)
-        val steps = if (fast) 5 else 24
+        val steps = 24
         for (i in 1..steps) {
-            SystemClock.sleep(if (fast) 8 else 18)
+            SystemClock.sleep(18)
             send(MotionEvent.ACTION_MOVE, x, start + (end - start) * i / steps)
         }
         if (pauseAtEnd) SystemClock.sleep(180)
         send(MotionEvent.ACTION_UP, x, end)
+        if (pauseAtEnd) onNote { _, pad -> assertFalse("Lifting after a pause started a fling", pad.isReadingScrollActive) }
     }
 
     private fun tap(x: Float, y: Float) {
@@ -149,11 +154,23 @@ class NoteInteractionTest {
     }
 
     @Test fun fastFlingCoastsAndTouchStopsItWithoutOpeningTheEditor() {
-        swipe(fast = true)
         var atRelease = 0
-        onNote { _, pad -> atRelease = pad.scrollY }
+        onNote { _, pad ->
+            // Dispatch a whole flick in one UI call. Between separate calls, a busy emulator can
+            // insert >40ms gaps, at which point Android correctly sees a pause instead of a flick.
+            val x = pad.width * 0.6f
+            val viewport = pad.height - pad.totalPaddingTop - pad.totalPaddingBottom
+            val start = pad.totalPaddingTop + viewport * 0.85f
+            val end = pad.totalPaddingTop + viewport * 0.15f
+            val down = SystemClock.uptimeMillis() - 48L
+            dispatch(pad, MotionEvent.ACTION_DOWN, x, start, down, down)
+            for (i in 1..5) dispatch(pad, MotionEvent.ACTION_MOVE, x, start + (end - start) * i / 5, down, down + 8L * i)
+            dispatch(pad, MotionEvent.ACTION_UP, x, end, down, down + 48L)
+            atRelease = pad.scrollY
+            assertTrue("Flick did not start a fling at $atRelease of ${pad.maximumNoteScroll}", pad.isReadingScrollActive)
+        }
         SystemClock.sleep(250)
-        onNote { _, pad -> assertTrue("No inertial scrolling after release", pad.scrollY > atRelease + 30) }
+        onNote { _, pad -> assertTrue("No inertial scrolling after release: $atRelease to ${pad.scrollY}", pad.scrollY > atRelease + 30) }
         assertReading()
         var x = 0f; var y = 0f
         onNote { _, pad -> x = pad.width * 0.6f; y = (pad.height + pad.totalPaddingTop) / 2f }
@@ -307,7 +324,7 @@ class NoteInteractionTest {
         onNote { _, pad ->
             val image = Bitmap.createBitmap(pad.rootView.width, pad.rootView.height, Bitmap.Config.ARGB_8888)
             pad.rootView.draw(Canvas(image))
-            val path = File(instrumentation.targetContext.getExternalFilesDir(null), "jotterknocker-preview.png")
+            val path = File(instrumentation.targetContext.filesDir, "jotterknocker-preview.png")
             path.outputStream().use { image.compress(Bitmap.CompressFormat.PNG, 100, it) }
             image.recycle()
         }

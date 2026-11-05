@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: jotterknocker-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-and-lint:
     runs-on: ubuntu-latest
@@ -84,15 +88,7 @@ jobs:
           target: google_apis
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: |
-            adb shell wm size ${{ matrix.resolution }}
-            adb shell wm density ${{ matrix.density }}
-            adb shell settings put system font_scale ${{ matrix.font }}
-            bash gradlew connectedDebugAndroidTest --no-daemon
-            adb pull /sdcard/Android/data/app.scratchpad.launcher.debug/files/jotterknocker-preview.png preview-api-${{ matrix.api }}.png
-      - name: Capture device logs
-        if: always()
-        run: adb logcat -d > emulator-logcat.txt || true
+          script: bash scripts/run-emulator-tests.sh ${{ matrix.api }} ${{ matrix.resolution }} ${{ matrix.density }} ${{ matrix.font }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:

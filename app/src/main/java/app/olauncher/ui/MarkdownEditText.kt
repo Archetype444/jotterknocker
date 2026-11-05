@@ -64,6 +64,7 @@ class MarkdownEditText @JvmOverloads constructor(
     private var downX = 0f
     private var downY = 0f
     private var lastY = 0f
+    private var lastMoveTime = 0L
     private var scrollRemainder = 0f
     private var downCheckbox: CheckboxSpan? = null
     private var downLink: LinkSpan? = null
@@ -119,6 +120,7 @@ class MarkdownEditText @JvmOverloads constructor(
                 downX = event.x
                 downY = event.y
                 lastY = event.y
+                lastMoveTime = event.eventTime
                 scrollRemainder = 0f
                 downCheckbox = checkboxAt(event)
                 downLink = linkAt(event)
@@ -145,6 +147,7 @@ class MarkdownEditText @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 val dx = event.x - downX
                 val dy = event.y - downY
+                if (event.y != lastY) lastMoveTime = event.eventTime
                 if (!moved && (abs(dx) > configuration.scaledTouchSlop || abs(dy) > configuration.scaledTouchSlop)) {
                     moved = true
                     removeCallbacks(longPress)
@@ -166,8 +169,11 @@ class MarkdownEditText @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 removeCallbacks(longPress)
                 if (dragging) {
-                    velocity?.computeCurrentVelocity(1000, configuration.scaledMaximumFlingVelocity.toFloat())
-                    val speed = -(velocity?.yVelocity ?: 0f).roundToInt()
+                    // Older VelocityTrackers can keep a stale velocity if the finger pauses before lifting.
+                    val speed = if (event.eventTime - lastMoveTime <= 40L) {
+                        velocity?.computeCurrentVelocity(1000, configuration.scaledMaximumFlingVelocity.toFloat())
+                        -(velocity?.yVelocity ?: 0f).roundToInt()
+                    } else 0
                     if (abs(speed) >= configuration.scaledMinimumFlingVelocity) {
                         scroller.fling(0, scrollY, 0, speed, 0, 0, 0, maximumNoteScroll)
                         postInvalidateOnAnimation()
@@ -220,7 +226,11 @@ class MarkdownEditText @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (oldh > 0 && (w != oldw || h != oldh)) stopReadingScroll()
+        if (oldh > 0 && (w != oldw || h != oldh)) {
+            // A layout change can interrupt momentum, but an ongoing drag still owns its touch stream.
+            stopFling()
+            fadeNow()
+        }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
