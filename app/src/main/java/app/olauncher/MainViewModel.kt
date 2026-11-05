@@ -79,7 +79,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
-            in 1..8, in 109..115 -> saveHomeApp(appModel, Constants.homeAppPosition(flag)!!)
+            in 1..8, in 209..215 -> saveHomeApp(appModel, Constants.homeSlot(flag)!!)
 
             Constants.FLAG_SET_SWIPE_LEFT_APP -> saveSwipeApp(appModel, isLeft = true)
             Constants.FLAG_SET_SWIPE_RIGHT_APP -> saveSwipeApp(appModel, isLeft = false)
@@ -102,12 +102,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun saveHomeApp(appModel: AppModel, position: Int) {
+        val location = position + prefs.homePage * Constants.HOME_PAGE_SLOTS
         when (appModel) {
             is AppModel.PrivateSpaceHeader -> return
-            is AppModel.App -> prefs.saveHomeApp(position, appModel.appLabel, appModel.appPackage,
-                appModel.user.toString(), appModel.activityClassName, false, "")
-            is AppModel.PinnedShortcut -> prefs.saveHomeApp(position, appModel.appLabel, appModel.appPackage,
-                appModel.user.toString(), null, true, appModel.shortcutId)
+            is AppModel.App -> prefs.setHomeApp(location, appModel.appLabel, appModel.appPackage, appModel.user.toString(), appModel.activityClassName, null)
+            is AppModel.PinnedShortcut -> prefs.setHomeApp(location, appModel.appLabel, appModel.appPackage, appModel.user.toString(), null, appModel.shortcutId)
         }
         refreshHome(false)
     }

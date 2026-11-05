@@ -1,6 +1,9 @@
 package app.olauncher.ui
 
 import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
@@ -24,7 +27,13 @@ import app.olauncher.data.AppModel
 import app.olauncher.data.Constants
 import app.olauncher.data.Prefs
 import app.olauncher.databinding.FragmentAppDrawerBinding
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsAnimationCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
+import app.olauncher.helper.AppCategories
 import app.olauncher.helper.deletePinnedShortcut
+import app.olauncher.helper.dpToPx
 import app.olauncher.helper.hideKeyboard
 import app.olauncher.helper.isEinkDisplay
 import app.olauncher.helper.isSystemAnimationsDisabled
@@ -77,12 +86,34 @@ class AppDrawerFragment : BaseFragment() {
         initAdapter()
         initObservers()
         initClickListeners()
+        initCategoryRow()
+    }
+
+    private val systemDark get() =
+        Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+
+    /** Like the note's format toolbar: keyboard colours, riding the keyboard's top edge (thumb reach). */
+    private fun initCategoryRow() {
+        val row = binding.categoryRow
+        row.setBackgroundColor(if (systemDark) Color.BLACK else Color.WHITE)
+        fun follow(insets: WindowInsetsCompat) {
+            val bottom = insets.getInsets(WindowInsetsCompat.Type.ime() or WindowInsetsCompat.Type.navigationBars()).bottom
+            val rowBottom = IntArray(2).also { binding.root.getLocationInWindow(it) }[1] + row.bottom
+            row.translationY = (row.rootView.height - bottom - rowBottom).coerceAtMost(0).toFloat()
+        }
+        ViewCompat.setWindowInsetsAnimationCallback(binding.root, object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_CONTINUE_ON_SUBTREE) {
+            override fun onProgress(insets: WindowInsetsCompat, runningAnimations: List<WindowInsetsAnimationCompat>): WindowInsetsCompat {
+                follow(insets)
+                return insets
+            }
+        })
+        ViewCompat.setOnApplyWindowInsetsListener(row) { _, insets -> follow(insets); insets }
     }
 
     private fun initViews() {
         if (flag == Constants.FLAG_HIDDEN_APPS)
             binding.search.queryHint = getString(R.string.hidden_apps)
-        else if (Constants.homeAppPosition(flag) != null || flag in Constants.FLAG_SET_SWIPE_LEFT_APP..Constants.FLAG_SET_CALENDAR_APP)
+        else if (flag in Constants.FLAG_SET_HOME_APP_1..Constants.FLAG_SET_SCREEN_TIME_APP || Constants.homeSlot(flag) != null)
             binding.search.queryHint = "Please select an app"
         try {
             searchTextView = binding.search.findViewById(R.id.search_src_text)
@@ -227,6 +258,12 @@ class AppDrawerFragment : BaseFragment() {
                 prefs.setAppRenameLabel(identifier, renameLabel)
                 viewModel.getAppList()
             },
+            appSinkListener = { appModel ->
+                val key = appModel.sinkKey
+                prefs.sunkApps = prefs.sunkApps.let { if (key in it) it - key else it + key }
+                viewModel.getAppList()
+            },
+            prefs = prefs,
             privateSpaceToggleListener = {
                 viewModel.togglePrivateSpaceLock()
             },
@@ -304,6 +341,35 @@ class AppDrawerFragment : BaseFragment() {
 
         adapter.setAppList(combined)
         adapter.filter.filter(binding.search.query)
+        updateCategoryRow(apps)
+    }
+
+    // Experimental: one chip per emoji that starts an app name; tap filters, tap again clears
+    private fun updateCategoryRow(apps: List<AppModel>) {
+        val categories = if (prefs.drawerCategories && flag == Constants.FLAG_LAUNCH_APP)
+            AppCategories.all(apps.map { it.appLabel }) else emptyList()
+        binding.categoryRow.isVisible = categories.isNotEmpty()
+        binding.categoryRow.post { if (_binding != null) ViewCompat.requestApplyInsets(binding.categoryRow) }
+        if (adapter.category !in categories) adapter.category = null
+        binding.categoryChips.removeAllViews()
+        categories.forEach { emoji ->
+            val chip = TextView(requireContext()).apply {
+                text = emoji
+                textSize = 20f
+                gravity = android.view.Gravity.CENTER
+                minWidth = 48.dpToPx()
+                height = 48.dpToPx()
+                setPadding(12.dpToPx(), 0, 12.dpToPx(), 0)
+                setTextColor(if (systemDark) Color.WHITE else Color.BLACK)
+                alpha = if (adapter.category == null || adapter.category == emoji) 1f else 0.4f
+                setOnClickListener {
+                    adapter.category = if (adapter.category == emoji) null else emoji
+                    adapter.filter.filter(binding.search.query)
+                    updateCategoryRow(apps)
+                }
+            }
+            binding.categoryChips.addView(chip)
+        }
     }
 
     private fun initClickListeners() {
@@ -315,7 +381,7 @@ class AppDrawerFragment : BaseFragment() {
                 return@setOnClickListener
             }
 
-            Constants.homeAppPosition(flag)?.let { prefs.setAppName(it, name) }
+            Constants.homeSlot(flag)?.let { prefs.setAppName(it + prefs.homePage * Constants.HOME_PAGE_SLOTS, name) }
             findNavController().popBackStack()
         }
     }

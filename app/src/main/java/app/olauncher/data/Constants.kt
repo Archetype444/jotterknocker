@@ -70,19 +70,20 @@ object Constants {
     const val FLAG_SET_HOME_APP_7 = 7
     const val FLAG_SET_HOME_APP_8 = 8
 
-    // New picker flags avoid the existing gesture/clock flags (11–15).
+    /** Home slots per page (three columns of five); stored slot = slot + page * HOME_PAGE_SLOTS. */
+    const val HOME_PAGE_SLOTS = 15
     const val MAX_HOME_APPS = 15
     const val HOME_APP_COLUMNS = 3
     const val HOME_APP_ROWS = 5
 
-    fun homeAppFlag(position: Int): Int {
-        require(position in 1..MAX_HOME_APPS)
-        return if (position <= 8) position else position + 100
-    }
+    fun homeAppFlag(position: Int) = homeSlotFlag(position)
+    fun homeAppPosition(flag: Int) = homeSlot(flag)
 
-    fun homeAppPosition(flag: Int): Int? = when (flag) {
+    /** Picker flag for home slot 1-15. Flags 11-15 are taken, so slots 9+ use 200 + slot. */
+    fun homeSlotFlag(slot: Int) = if (slot <= 8) slot else 200 + slot
+    fun homeSlot(flag: Int): Int? = when (flag) {
         in 1..8 -> flag
-        in 109..115 -> flag - 100
+        in 209..215 -> flag - 200
         else -> null
     }
 

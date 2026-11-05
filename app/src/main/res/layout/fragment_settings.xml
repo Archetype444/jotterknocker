@@ -68,6 +68,12 @@
                         android:id="@+id/homeAppsNum"
                         style="@style/SettingsSummary"
                         tools:text="@string/_8" />
+
+                    <SeekBar
+                        android:id="@+id/homeAppsNumBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/apps_on_home_screen" />
                 </LinearLayout>
 
                 <LinearLayout style="@style/SettingsRow">
@@ -94,6 +100,19 @@
                         android:text="@string/on" />
                 </LinearLayout>
 
+                <LinearLayout style="@style/SettingsSwitchRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/date_time_top" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/dateTimeTop"
+                        style="@style/SettingsSwitch" />
+                </LinearLayout>
+
                 <LinearLayout style="@style/SettingsRow">
 
                     <TextView
@@ -106,6 +125,17 @@
                         android:text="@string/left" />
                 </LinearLayout>
 
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/home_bottom_margin" />
+
+                    <TextView
+                        android:id="@+id/homeBottomMarginValue"
+                        style="@style/SettingsSummary" />
+                </LinearLayout>
+
                 <LinearLayout style="@style/SettingsSwitchRow">
 
                     <TextView
@@ -116,6 +146,19 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/appIcons"
+                        style="@style/SettingsSwitch" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/SettingsSwitchRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/emoji_categories" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/drawerCategories"
                         style="@style/SettingsSwitch" />
                 </LinearLayout>
 
@@ -215,6 +258,28 @@
                         android:id="@+id/textSizeValue"
                         style="@style/SettingsSummary"
                         tools:text="1.0" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/app_spacing" />
+
+                    <TextView
+                        android:id="@+id/appSpacingValue"
+                        style="@style/SettingsSummary" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/app_text_size" />
+
+                    <TextView
+                        android:id="@+id/appTextScaleValue"
+                        style="@style/SettingsSummary" />
                 </LinearLayout>
 
                 <TextView
@@ -360,6 +425,46 @@
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/toggleLock"
                         style="@style/SettingsSwitch" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                style="@style/SettingsHeader"
+                android:text="@string/experimental" />
+
+            <LinearLayout style="@style/SettingsCard">
+
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/home_columns" />
+
+                    <TextView
+                        android:id="@+id/homeColumnsValue"
+                        style="@style/SettingsSummary" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/note_pages" />
+
+                    <TextView
+                        android:id="@+id/notePagesValue"
+                        style="@style/SettingsSummary" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/SettingsRow">
+
+                    <TextView
+                        style="@style/SettingsTitle"
+                        android:text="@string/home_pages" />
+
+                    <TextView
+                        android:id="@+id/homePagesValue"
+                        style="@style/SettingsSummary" />
                 </LinearLayout>
             </LinearLayout>
 

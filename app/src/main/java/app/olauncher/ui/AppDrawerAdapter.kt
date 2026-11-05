@@ -21,6 +21,8 @@ import app.olauncher.data.AppModel
 import app.olauncher.data.Constants
 import app.olauncher.databinding.AdapterAppDrawerBinding
 import app.olauncher.databinding.AdapterPrivateSpaceHeaderBinding
+import app.olauncher.helper.AppCategories
+import app.olauncher.helper.applyAppLabelStyle
 import app.olauncher.helper.hideKeyboard
 import app.olauncher.helper.isSystemApp
 import app.olauncher.helper.setLeadingIcon
@@ -35,6 +37,8 @@ class AppDrawerAdapter(
     private val appDeleteListener: (AppModel) -> Unit,
     private val appHideListener: (AppModel, Int) -> Unit,
     private val appRenameListener: (AppModel, String) -> Unit,
+    private val appSinkListener: (AppModel) -> Unit,
+    private val prefs: app.olauncher.data.Prefs,
     private val privateSpaceToggleListener: () -> Unit = {},
     private val privateSpaceSettingsListener: () -> Unit = {},
     private val showIcons: Boolean = false,
@@ -65,6 +69,11 @@ class AppDrawerAdapter(
     private var autoLaunch = true
     private var isBangSearch = false
     var allowAutoLaunch = true
+    /** Closes the one row whose edit options are open, so only one row is edited at a time. */
+    private var openEdit: (() -> Unit)? = null
+
+    /** Emoji category filter (see AppCategories); null shows everything. */
+    var category: String? = null
     private val diacriticsRegex = Regex("\\p{InCombiningDiacriticalMarks}+")
     private val separatorsRegex = Regex("[-_+,.`'\\s\\p{Z}]")
     private val appFilter = createAppFilter()
@@ -125,7 +134,9 @@ class AppDrawerAdapter(
                     appDeleteListener,
                     appInfoListener,
                     appHideListener,
-                    appRenameListener
+                    appRenameListener,
+                    appSinkListener,
+                    prefs,
                 )
             }
         } catch (e: Exception) {
@@ -148,10 +159,12 @@ class AppDrawerAdapter(
         return object : Filter() {
             override fun performFiltering(charSearch: CharSequence?): FilterResults {
                 isBangSearch = charSearch?.startsWith("!") ?: false
-                autoLaunch = allowAutoLaunch && (charSearch?.startsWith(" ")?.not() ?: true)
+                // Never on an empty query: picking a one-app category must not launch it
+                autoLaunch = allowAutoLaunch && !charSearch.isNullOrBlank() && !charSearch.startsWith(" ")
 
-                val appFilteredList = (if (charSearch.isNullOrBlank()) appsList
-                else appsList.filter { app ->
+                val inCategory = category?.let { c -> appsList.filter { AppCategories.of(it.appLabel) == c } } ?: appsList
+                val appFilteredList = (if (charSearch.isNullOrBlank()) inCategory.toMutableList()
+                else inCategory.filter { app ->
                     app !is AppModel.PrivateSpaceHeader && appLabelMatches(app.appLabel, charSearch)
                 } as MutableList<AppModel>)
 
@@ -199,6 +212,7 @@ class AppDrawerAdapter(
             .replace(separatorsRegex, "")
 
     fun setAppList(appsList: MutableList<AppModel>) {
+        openEdit = null // rows are rebound, so a stale edit must not swallow the next tap
         // Add empty app for bottom padding in recyclerview and assign to list
         appsList.add(
             AppModel.App(
@@ -236,7 +250,7 @@ class AppDrawerAdapter(
         }
     }
 
-    class ViewHolder(private val binding: AdapterAppDrawerBinding) :
+    inner class ViewHolder(private val binding: AdapterAppDrawerBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(
             flag: Int,
@@ -249,7 +263,10 @@ class AppDrawerAdapter(
             appInfoListener: (AppModel) -> Unit,
             appHideListener: (AppModel, Int) -> Unit,
             appRenameListener: (AppModel, String) -> Unit,
+            appSinkListener: (AppModel) -> Unit,
+            prefs: app.olauncher.data.Prefs,
         ) = with(binding) {
+            appTitle.applyAppLabelStyle(prefs, R.dimen.app_padding_vertical)
             appHideLayout.visibility = View.GONE
             renameLayout.visibility = View.GONE
             appTitle.visibility = View.VISIBLE
@@ -263,10 +280,21 @@ class AppDrawerAdapter(
             appTitle.setLeadingIcon(icon)
             otherProfileIndicator.isVisible = appModel.user != myUserHandle
 
-            appTitle.setOnClickListener { clickListener(appModel) }
+            fun closeEdit() {
+                appHideLayout.visibility = View.GONE
+                renameLayout.visibility = View.GONE
+                appTitle.visibility = View.VISIBLE
+                if (etAppRename.hasFocus()) etAppRename.hideKeyboard()
+            }
+            // A tap elsewhere while a row is being edited only closes that row's edit options.
+            appTitle.setOnClickListener {
+                openEdit?.let { it(); openEdit = null } ?: clickListener(appModel)
+            }
 
             appTitle.setOnLongClickListener {
                 if (appModel.appPackage.isNotEmpty()) {
+                    openEdit?.invoke()
+                    openEdit = ::closeEdit
                     appDelete.alpha = when (
                         appModel is AppModel.PinnedShortcut || !root.context.isSystemApp(appModel.appPackage, appModel.user)
                     ) {
@@ -285,6 +313,8 @@ class AppDrawerAdapter(
                     appHideLayout.visibility = View.VISIBLE
                     // Only allow renaming non hidden apps
                     appRename.isVisible = flag != Constants.FLAG_HIDDEN_APPS
+                    appSink.isVisible = flag == Constants.FLAG_LAUNCH_APP
+                    appSink.setText(if (appModel.sinkKey in prefs.sunkApps) R.string.raise else R.string.sink)
                 }
                 true
             }
@@ -327,12 +357,14 @@ class AppDrawerAdapter(
                     if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
                         appRenameListener(appModel, renameLabel)
                         renameLayout.visibility = View.GONE
+                        openEdit = null
                     }
                     true
                 }
                 false
             }
             tvSaveRename.setOnClickListener {
+                openEdit = null
                 etAppRename.hideKeyboard()
                 val renameLabel = etAppRename.text.toString().trim()
                 if (renameLabel.isNotBlank() && appModel.appPackage.isNotBlank()) {
@@ -348,15 +380,10 @@ class AppDrawerAdapter(
             }
             appInfo.setOnClickListener { appInfoListener(appModel) }
             appDelete.setOnClickListener { appDeleteListener(appModel) }
-            appMenuClose.setOnClickListener {
-                appHideLayout.visibility = View.GONE
-                appTitle.visibility = View.VISIBLE
-            }
-            appRenameClose.setOnClickListener {
-                renameLayout.visibility = View.GONE
-                appTitle.visibility = View.VISIBLE
-            }
+            appMenuClose.setOnClickListener { closeEdit(); openEdit = null }
+            appRenameClose.setOnClickListener { closeEdit(); openEdit = null }
             appHide.setOnClickListener { appHideListener(appModel, bindingAdapterPosition) }
+            appSink.setOnClickListener { appSinkListener(appModel) }
         }
 
         private fun getAppName(context: Context, appPackage: String, user: UserHandle): String {

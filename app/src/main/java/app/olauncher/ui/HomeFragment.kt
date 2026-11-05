@@ -15,6 +15,7 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.util.TypedValue
@@ -54,6 +55,7 @@ import app.olauncher.helper.RecentApps
 import app.olauncher.databinding.FragmentHomeBinding
 import app.olauncher.helper.HomeGridSizing
 import app.olauncher.helper.ClockAppearance
+import app.olauncher.helper.applyAppLabelStyle
 import app.olauncher.helper.MarkdownAction
 import app.olauncher.helper.MarkdownFormatter
 import app.olauncher.helper.hideKeyboard
@@ -81,6 +83,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListener {
 
@@ -92,15 +95,15 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private var syncPollJob: Job? = null
     private var recentApps: List<LauncherActivityInfo> = emptyList()
     private val recentsOn get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && prefs.recentAppsColumn != RECENTS_OFF
+    /** Slots 9-15, only in the three-column layout. */
+    private var extraSlots: List<TextView> = emptyList()
+    private val slots get() = with(binding) { listOf(homeApp1, homeApp2, homeApp3, homeApp4, homeApp5, homeApp6, homeApp7, homeApp8) } + extraSlots
+    /** Slot 1-15 on screen -> stored home slot, offset by the home page. */
+    private fun location(slot: Int) = slot + prefs.homePage * Constants.HOME_PAGE_SLOTS
+    private var notePage = 0
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
-    private val homeAppViews get() = listOf(
-        binding.homeApp1, binding.homeApp2, binding.homeApp3, binding.homeApp4, binding.homeApp5,
-        binding.homeApp6, binding.homeApp7, binding.homeApp8, binding.homeApp9, binding.homeApp10,
-        binding.homeApp11, binding.homeApp12, binding.homeApp13, binding.homeApp14, binding.homeApp15,
-    )
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -118,6 +121,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
         scratchpadDebouncer = Debouncer(viewLifecycleOwner.lifecycleScope, 300L)
         applyLandscape()
+        applyHomeLayout()
         initScratchpad()
         initObservers()
         setHomeAlignment(prefs.homeAlignment)
@@ -168,6 +172,42 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         (binding.homeAppsLayout.layoutParams as FrameLayout.LayoutParams).gravity = Gravity.BOTTOM
     }
 
+    /** Settings > Experimental: space under the apps, one app column, clock above the note (portrait only). */
+    private fun applyHomeLayout() {
+        binding.homeAppsLayout.updatePadding(bottom = prefs.homeBottomMargin.dpToPx())
+        // Recent apps fill slots 5-8, so they keep the original two columns of four.
+        val columns = if (recentsOn) 2 else prefs.homeColumns
+        extraSlots = emptyList() // a recreated view must not keep the old binding's slots
+        if (columns != 2) arrangeColumns(columns)
+        if (prefs.dateTimeTop && resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            val dateTime = binding.dateTimeLayout
+            binding.homeAppsLayout.removeView(dateTime)
+            dateTime.updatePadding(left = 24.dpToPx(), top = 48.dpToPx(), right = 24.dpToPx())
+            binding.homeColumns.addView(dateTime, 0, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            binding.date.updatePadding(bottom = 0)
+            // Room for the page dots only when they show; otherwise the note starts right under the date.
+            binding.scratchpad.updatePadding(top = (if (prefs.scratchpadPages > 1) 20 else 4).dpToPx())
+            (binding.notePageDots.layoutParams as ViewGroup.MarginLayoutParams).topMargin = 0
+        }
+    }
+
+    /** Rebuilds the grid as columns filled top to bottom: one column of 8, or three of 5 (15 apps). */
+    private fun arrangeColumns(columns: Int) {
+        val grid = binding.homeAppsGrid
+        if (columns == 3) extraSlots = (9..15).map { n ->
+            (layoutInflater.inflate(R.layout.home_app_slot, grid, false) as TextView).apply { tag = "$n" }
+        }
+        val all = slots
+        all.forEach { (it.parent as? ViewGroup)?.removeView(it) }
+        grid.removeAllViews()
+        all.chunked(if (columns == 3) 5 else all.size).forEach { column ->
+            grid.addView(LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                column.forEach { addView(it, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)) }
+            }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        }
+    }
+
     /** Custom text colour over every home label except the format toolbar, which follows the keyboard. */
     private fun applyHomeTextColor() {
         val color = prefs.homeTextColor.takeIf { it != 0 } ?: return
@@ -186,7 +226,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         super.onResume()
         populateHomeScreen(false)
         viewModel.isOlauncherDefault()
-        ScratchpadSync.readIfChanged(requireContext(), prefs)?.let {
+        if (notePage == 0) ScratchpadSync.readIfChanged(requireContext(), prefs)?.let {
             prefs.scratchpadText = it
             binding.scratchpad.setText(it)
         }
@@ -197,7 +237,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         syncPollJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 delay(3000)
-                if (binding.scratchpad.isFocused) continue
+                if (binding.scratchpad.isFocused || notePage != 0) continue
                 ScratchpadSync.readIfChanged(requireContext(), prefs)?.let {
                     prefs.scratchpadText = it
                     binding.scratchpad.setText(it)
@@ -220,7 +260,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 try { // Launch app
                     val appLocation = view.tag.toString().toInt()
                     if (recentsOn && appLocation > 4) launchRecentApp(appLocation - 5)
-                    else homeAppClicked(appLocation)
+                    else homeAppClicked(location(appLocation))
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -255,9 +295,9 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     override fun onLongClick(view: View): Boolean {
         // Recent slots aren't pinnable.
         if (recentsOn && (view.tag?.toString()?.toIntOrNull() ?: 0) > 4) return true
-        val position = view.tag?.toString()?.toIntOrNull()
-        if (position != null && position in 1..Constants.MAX_HOME_APPS) {
-            showAppList(Constants.homeAppFlag(position), prefs.getAppName(position).isNotEmpty(), true)
+        if (view in slots) {
+            val slot = view.tag.toString().toInt()
+            showAppList(Constants.homeSlotFlag(slot), prefs.getAppName(location(slot)).isNotEmpty(), true)
             return true
         }
         when (view.id) {
@@ -329,7 +369,10 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun initSwipeTouchListener() {
         val context = requireContext()
         binding.mainLayout.setOnTouchListener(getSwipeGestureListener(context))
-        homeAppViews.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
+        slots.forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it)) }
+        // Sideways swipes on the clock and date always open the swipe apps, even with home pages.
+        listOf(binding.clock, binding.date, binding.tvScreenTime)
+            .forEach { it.setOnTouchListener(getViewSwipeTouchListener(context, it, pages = false)) }
     }
 
     private fun initClickListeners() {
@@ -346,7 +389,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.tvScreenTime.setOnLongClickListener(this)
 
         // These fire only on d-pad/keyboard events; touch is consumed by ViewSwipeTouchListener
-        homeAppViews.forEach {
+        slots.forEach {
             it.setOnClickListener(this)
             it.setOnLongClickListener(this)
         }
@@ -355,13 +398,15 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun initScratchpad() {
         applyScratchpadTypography(prefs.scratchpadTextScale)
         binding.scratchpad.onPinch = { scale, done ->
-            val target = (prefs.scratchpadTextScale * scale).coerceIn(0.5f, 2.0f)
+            val target = (prefs.scratchpadTextScale * scale).coerceIn(0.5f, 5.0f)
             if (done) {
                 prefs.scratchpadTextScale = Math.round(target * 10f) / 10f
                 applyScratchpadTypography(prefs.scratchpadTextScale)
             } else applyScratchpadTypography(target)
         }
-        binding.scratchpad.setText(prefs.scratchpadText)
+        notePage = prefs.scratchpadPage
+        binding.scratchpad.setText(prefs.getScratchpadPage(notePage))
+        updatePageDots()
         binding.scratchpad.text?.let { styleScratchpadMarkdown(it) }
         var typedNewline = -1
         binding.scratchpad.addTextChangedListener(
@@ -380,7 +425,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     }
                 }
                 val text = editable?.toString().orEmpty()
-                scratchpadDebouncer.submit { prefs.scratchpadText = text }
+                val page = notePage
+                scratchpadDebouncer.submit { prefs.setScratchpadPage(page, text) }
                 editable?.let { styleScratchpadMarkdown(it) }
             },
         )
@@ -407,10 +453,33 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.scratchpad.let { pad ->
             // A drag that scrolled the note while editing is the user's own scroll: keep it on leaving
             var scrollOnDown = 0
+            // The note covers the top half, so home gestures also work on it while it's not being edited:
+            // sideways always, up/down once the note can't scroll further that way.
+            var flung = false
+            val noteGestures = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+                override fun onFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+                    val dx = e2.x - (e1?.x ?: e2.x)
+                    val dy = e2.y - (e1?.y ?: e2.y)
+                    flung = true
+                    when {
+                        abs(dx) > abs(dy) && abs(dx) > SWIPE_MIN_PX -> if (dx < 0) noteSwipe(left = true) else noteSwipe(left = false)
+                        dy < -SWIPE_MIN_PX && !pad.canScrollVertically(1) -> showAppList(Constants.FLAG_LAUNCH_APP)
+                        dy > SWIPE_MIN_PX && !pad.canScrollVertically(-1) -> swipeDownAction()
+                        else -> flung = false
+                    }
+                    return flung
+                }
+            })
             pad.setOnTouchListener { _, event ->
                 when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> scrollOnDown = pad.scrollY
+                    MotionEvent.ACTION_DOWN -> { scrollOnDown = pad.scrollY; flung = false }
                     MotionEvent.ACTION_UP -> if (pad.isFocused && pad.scrollY != scrollOnDown) scrolledWhileEditing = true
+                }
+                if (!pad.isFocused) noteGestures.onTouchEvent(event)
+                // A swipe that did something must not also focus the note (and raise the keyboard).
+                if (flung && event.actionMasked == MotionEvent.ACTION_UP) {
+                    pad.onTouchEvent(MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL })
+                    return@setOnTouchListener true
                 }
                 false
             }
@@ -434,8 +503,19 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                     if (ViewCompat.getRootWindowInsets(pad)?.isVisible(WindowInsetsCompat.Type.ime()) != true) leaveEditing()
                 }
             })
+            val basePaddingBottom = pad.paddingBottom
             ViewCompat.setOnApplyWindowInsetsListener(pad) { _, insets ->
                 val visible = insets.isVisible(WindowInsetsCompat.Type.ime())
+                // The window doesn't resize, so a keyboard taller than the bottom half covers the note's last
+                // lines. Pad the note above the keyboard (and toolbar) so the cursor line scrolls into view.
+                val keyboardTop = pad.rootView.height - insets.getInsets(WindowInsetsCompat.Type.ime()).bottom -
+                    (if (visible && prefs.formatToolbar) binding.formatToolbar.height else 0)
+                val padBottom = IntArray(2).also { pad.getLocationInWindow(it) }[1] + pad.height
+                val covered = if (visible) (padBottom - keyboardTop).coerceAtLeast(0) else 0
+                if (pad.paddingBottom != basePaddingBottom + covered) {
+                    pad.updatePadding(bottom = basePaddingBottom + covered)
+                    if (visible) pad.post { pad.bringPointIntoView(pad.selectionEnd.coerceAtLeast(0)) }
+                }
                 // Keyboard hidden without an animation
                 if (keyboardWasVisible && !visible && !keyboardAnimating) leaveEditing()
                 keyboardWasVisible = visible
@@ -545,7 +625,52 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.homeAppsLayout.gravity = horizontalGravity
         binding.homeAppsGridContainer.gravity = horizontalGravity or verticalGravity
         binding.dateTimeLayout.gravity = horizontalGravity
-        homeAppViews.forEach { it.gravity = horizontalGravity or Gravity.CENTER_VERTICAL }
+        binding.homePageDots.gravity = horizontalGravity
+        slots.forEach { it.gravity = horizontalGravity }
+    }
+
+    /** Sideways swipe on the note: flips note pages when there are several, else opens the swipe apps. */
+    private fun noteSwipe(left: Boolean) {
+        if (prefs.scratchpadPages > 1) {
+            showNotePage((notePage + if (left) 1 else -1).mod(prefs.scratchpadPages))
+            binding.scratchpad.slideIn(left)
+        } else if (left) openSwipeLeftApp() else openSwipeRightApp()
+    }
+
+    /** Sideways swipe on the bottom half: flips home pages when there are several, else opens the swipe apps. */
+    private fun homeSwipe(left: Boolean) {
+        if (prefs.homePages > 1) {
+            prefs.homePage = (prefs.homePage + if (left) 1 else -1).mod(prefs.homePages)
+            populateHomeScreen(true)
+            binding.homeAppsGrid.slideIn(left)
+        } else if (left) openSwipeLeftApp() else openSwipeRightApp()
+    }
+
+    /** Page flips slide in from the swipe side, so the change reads as following the finger. */
+    private fun View.slideIn(left: Boolean) {
+        translationX = (if (left) 1 else -1) * 48.dpToPx().toFloat()
+        alpha = 0.3f
+        animate().translationX(0f).alpha(1f).setDuration(150).start()
+    }
+
+    private fun showNotePage(page: Int) {
+        scratchpadDebouncer.cancel()
+        val text = binding.scratchpad.text.toString()
+        prefs.setScratchpadPage(notePage, text)
+        if (notePage == 0) ScratchpadSync.write(requireContext(), prefs, text)
+        notePage = page
+        prefs.scratchpadPage = page
+        binding.scratchpad.setText(prefs.getScratchpadPage(page))
+        binding.scratchpad.scrollTo(0, 0)
+        updatePageDots()
+    }
+
+    private fun updatePageDots() {
+        fun dots(count: Int, current: Int) = (0 until count).joinToString(" ") { if (it == current) "●" else "○" }
+        binding.notePageDots.isVisible = prefs.scratchpadPages > 1
+        binding.notePageDots.text = dots(prefs.scratchpadPages, notePage)
+        binding.homePageDots.isVisible = prefs.homePages > 1
+        binding.homePageDots.text = dots(prefs.homePages, prefs.homePage)
     }
 
     private fun populateDateTime() {
@@ -580,53 +705,38 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun populateHomeScreen(appCountUpdated: Boolean) {
         hideHomeApps()
         populateDateTime()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) populateScreenTime()
 
-        val homeAppsNum = prefs.homeAppsNum.coerceIn(0, Constants.MAX_HOME_APPS)
-        configureHomeGrid(homeAppsNum)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            populateScreenTime()
+
+        val homeAppsNum = if (recentsOn) prefs.homeAppsNum.coerceAtMost(4) else prefs.homeAppsNum
         if (recentsOn) populateRecentApps()
-        val pinnedCount = if (recentsOn) homeAppsNum.coerceAtMost(4) else homeAppsNum
-        homeAppViews.take(pinnedCount).forEachIndexed { index, slot ->
-            val position = index + 1
-            slot.visibility = View.VISIBLE
-            slot.alpha = 1f
-            if (!setHomeAppText(slot, prefs.getAppName(position), prefs.getAppPackage(position),
-                    prefs.getAppUser(position), prefs.getIsShortcut(position), prefs.getShortcutId(position))) {
-                prefs.clearHomeApp(position)
-            }
+        slots.forEach { it.applyAppLabelStyle(prefs, R.dimen.home_app_padding_vertical) }
+        fitFiveRows(homeAppsNum)
+        updatePageDots()
+        if (homeAppsNum == 0) return
+
+        slots.take(homeAppsNum).forEachIndexed { i, view ->
+            val location = location(i + 1)
+            view.visibility = View.VISIBLE
+            if (!setHomeAppText(view, prefs.getAppName(location), prefs.getAppPackage(location), prefs.getAppUser(location), prefs.getIsShortcut(location), prefs.getShortcutId(location)))
+                prefs.clearHomeApp(location)
         }
     }
 
-    private fun configureHomeGrid(appCount: Int) {
-        val slots = homeAppViews
-        val columns = listOf(binding.homeAppColumn1, binding.homeAppColumn2, binding.homeAppColumn3)
-        columns.forEach { it.removeAllViews() }
-        slots.forEachIndexed { index, slot ->
-            // Preserve the optional recents feature's original four pinned + four recent apps.
-            val column = if (recentsOn) index / 4 else index / Constants.HOME_APP_ROWS
-            if (column < columns.size) columns[column].addView(slot)
-        }
-        // Reset order first; populateRecentApps moves the pinned column when requested.
-        binding.homeAppsGrid.removeAllViews()
-        columns.forEachIndexed { index, column ->
-            column.isVisible = !recentsOn || index < 2
-            binding.homeAppsGrid.addView(column)
-        }
-
-        val basePadding = resources.getDimensionPixelSize(R.dimen.home_app_padding_vertical)
-        val fiveRows = !recentsOn && appCount > 4
-        val metrics = slots.first().paint.fontMetricsInt
-        val textHeight = metrics.bottom - metrics.top
-        // Reuse the old bottom gap for row five: 4 rows + 56dp == 5 rows + 8dp.
-        // This keeps the scratchpad/app boundary and typography unchanged (within rounding).
-        val rowHeight = HomeGridSizing.rowHeight(textHeight, basePadding, 48.dpToPx())
+    /** Keep the previous fork's scratchpad space when using three columns of five. */
+    private fun fitFiveRows(count: Int) {
+        val compact = !recentsOn && prefs.homeColumns == 3 && count > 4 && prefs.homeBottomMargin == 56
         slots.forEach { slot ->
-            slot.updatePadding(top = if (fiveRows) 0 else basePadding, bottom = if (fiveRows) 0 else basePadding)
+            val metrics = slot.paint.fontMetricsInt
+            val rowHeight = HomeGridSizing.rowHeight(metrics.bottom - metrics.top, slot.paddingTop, 48.dpToPx())
+            slot.gravity = prefs.homeAlignment or Gravity.CENTER_VERTICAL
             slot.layoutParams = (slot.layoutParams as LinearLayout.LayoutParams).apply {
-                height = if (fiveRows) rowHeight else ViewGroup.LayoutParams.WRAP_CONTENT
+                height = if (compact) rowHeight else ViewGroup.LayoutParams.WRAP_CONTENT
             }
+            if (compact) slot.updatePadding(top = 0, bottom = 0)
         }
-        binding.homeAppsLayout.updatePadding(bottom = (if (fiveRows) 8 else 56).dpToPx())
+        binding.homeAppsLayout.updatePadding(bottom = (if (compact) 8 else prefs.homeBottomMargin).dpToPx())
     }
 
     private fun setHomeAppText(
@@ -676,7 +786,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         // Regular app check
         if (isPackageInstalled(requireContext(), packageName, userString)) {
             textView.text = appName
-            // ponytail: icons load on the main thread each resume; fine for <=15 apps, cache if it ever stutters.
+            // ponytail: icons load on the main thread each resume; fine for <=8 apps, cache if it ever stutters.
             if (prefs.showAppIcons) textView.setLeadingIcon(runCatching { launcherApps.getActivityList(packageName, userHandle).firstOrNull()?.getBadgedIcon(0) }.getOrNull())
             return true
         }
@@ -695,7 +805,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             }
         }
         val slots = listOf(binding.homeApp5, binding.homeApp6, binding.homeApp7, binding.homeApp8)
-        val exclude = (1..prefs.homeAppsNum.coerceAtMost(4)).map { prefs.getAppPackage(it) }.toSet() +
+        val exclude = (1..prefs.homeAppsNum.coerceAtMost(4)).map { prefs.getAppPackage(location(it)) }.toSet() +
             prefs.hiddenApps.map { it.substringBefore('|') }
         val context = requireContext().applicationContext
         val showIcons = prefs.showAppIcons
@@ -720,9 +830,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         launchApp(app.label.toString(), app.componentName.packageName, app.componentName.className, app.user.toString())
     }
 
-    private fun hideHomeApps() {
-        homeAppViews.forEach { it.visibility = View.GONE }
-    }
+    private fun hideHomeApps() = slots.forEach { it.visibility = View.GONE }
 
     private fun launchAppOrShortcut(
         appName: String,
@@ -926,12 +1034,12 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         return object : OnSwipeTouchListener(context) {
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                homeSwipe(left = true)
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                homeSwipe(left = false)
             }
 
             override fun onSwipeUp() {
@@ -970,16 +1078,16 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         }
     }
 
-    private fun getViewSwipeTouchListener(context: Context, view: View): View.OnTouchListener {
+    private fun getViewSwipeTouchListener(context: Context, view: View, pages: Boolean = true): View.OnTouchListener {
         return object : ViewSwipeTouchListener(context, view) {
             override fun onSwipeLeft() {
                 super.onSwipeLeft()
-                openSwipeLeftApp()
+                if (pages) homeSwipe(left = true) else openSwipeLeftApp()
             }
 
             override fun onSwipeRight() {
                 super.onSwipeRight()
-                openSwipeRightApp()
+                if (pages) homeSwipe(left = false) else openSwipeRightApp()
             }
 
             override fun onSwipeUp() {
@@ -1009,8 +1117,9 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         syncPollJob?.cancel()
         scratchpadDebouncer.cancel()
         binding.scratchpad.text?.toString()?.let {
-            prefs.scratchpadText = it
-            ScratchpadSync.write(requireContext(), prefs, it)
+            prefs.setScratchpadPage(notePage, it)
+            // Only page 0 is the synced note.
+            if (notePage == 0) ScratchpadSync.write(requireContext(), prefs, it)
         }
     }
 
@@ -1019,6 +1128,9 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         _binding = null
     }
 }
+
+/** Matches OnSwipeTouchListener's distance threshold. */
+private const val SWIPE_MIN_PX = 100
 
 /** Recents read as a quieter column next to the pinned apps. */
 private const val RECENT_APP_ALPHA = 0.6f

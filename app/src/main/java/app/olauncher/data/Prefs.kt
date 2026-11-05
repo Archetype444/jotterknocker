@@ -77,38 +77,6 @@ class Prefs(context: Context) {
     // Home button for recents feature disabled
     // private val HOME_BUTTON_SHOW_RECENTS = "HOME_BUTTON_SHOW_RECENTS"
 
-    private val APP_NAME_1 = "APP_NAME_1"
-    private val APP_NAME_2 = "APP_NAME_2"
-    private val APP_NAME_3 = "APP_NAME_3"
-    private val APP_NAME_4 = "APP_NAME_4"
-    private val APP_NAME_5 = "APP_NAME_5"
-    private val APP_NAME_6 = "APP_NAME_6"
-    private val APP_NAME_7 = "APP_NAME_7"
-    private val APP_NAME_8 = "APP_NAME_8"
-    private val APP_PACKAGE_1 = "APP_PACKAGE_1"
-    private val APP_PACKAGE_2 = "APP_PACKAGE_2"
-    private val APP_PACKAGE_3 = "APP_PACKAGE_3"
-    private val APP_PACKAGE_4 = "APP_PACKAGE_4"
-    private val APP_PACKAGE_5 = "APP_PACKAGE_5"
-    private val APP_PACKAGE_6 = "APP_PACKAGE_6"
-    private val APP_PACKAGE_7 = "APP_PACKAGE_7"
-    private val APP_PACKAGE_8 = "APP_PACKAGE_8"
-    private val APP_ACTIVITY_CLASS_NAME_1 = "APP_ACTIVITY_CLASS_NAME_1"
-    private val APP_ACTIVITY_CLASS_NAME_2 = "APP_ACTIVITY_CLASS_NAME_2"
-    private val APP_ACTIVITY_CLASS_NAME_3 = "APP_ACTIVITY_CLASS_NAME_3"
-    private val APP_ACTIVITY_CLASS_NAME_4 = "APP_ACTIVITY_CLASS_NAME_4"
-    private val APP_ACTIVITY_CLASS_NAME_5 = "APP_ACTIVITY_CLASS_NAME_5"
-    private val APP_ACTIVITY_CLASS_NAME_6 = "APP_ACTIVITY_CLASS_NAME_6"
-    private val APP_ACTIVITY_CLASS_NAME_7 = "APP_ACTIVITY_CLASS_NAME_7"
-    private val APP_ACTIVITY_CLASS_NAME_8 = "APP_ACTIVITY_CLASS_NAME_8"
-    private val APP_USER_1 = "APP_USER_1"
-    private val APP_USER_2 = "APP_USER_2"
-    private val APP_USER_3 = "APP_USER_3"
-    private val APP_USER_4 = "APP_USER_4"
-    private val APP_USER_5 = "APP_USER_5"
-    private val APP_USER_6 = "APP_USER_6"
-    private val APP_USER_7 = "APP_USER_7"
-    private val APP_USER_8 = "APP_USER_8"
 
     private val APP_NAME_SWIPE_LEFT = "APP_NAME_SWIPE_LEFT"
     private val APP_NAME_SWIPE_RIGHT = "APP_NAME_SWIPE_RIGHT"
@@ -128,22 +96,6 @@ class Prefs(context: Context) {
     private val SCREEN_TIME_APP_USER = "SCREEN_TIME_APP_USER"
     private val SCREEN_TIME_APP_CLASS_NAME = "SCREEN_TIME_APP_CLASS_NAME"
 
-    private val IS_SHORTCUT_1 = "IS_SHORTCUT_1"
-    private val SHORTCUT_ID_1 = "SHORTCUT_ID_1"
-    private val IS_SHORTCUT_2 = "IS_SHORTCUT_2"
-    private val SHORTCUT_ID_2 = "SHORTCUT_ID_2"
-    private val IS_SHORTCUT_3 = "IS_SHORTCUT_3"
-    private val SHORTCUT_ID_3 = "SHORTCUT_ID_3"
-    private val IS_SHORTCUT_4 = "IS_SHORTCUT_4"
-    private val SHORTCUT_ID_4 = "SHORTCUT_ID_4"
-    private val IS_SHORTCUT_5 = "IS_SHORTCUT_5"
-    private val SHORTCUT_ID_5 = "SHORTCUT_ID_5"
-    private val IS_SHORTCUT_6 = "IS_SHORTCUT_6"
-    private val SHORTCUT_ID_6 = "SHORTCUT_ID_6"
-    private val IS_SHORTCUT_7 = "IS_SHORTCUT_7"
-    private val SHORTCUT_ID_7 = "SHORTCUT_ID_7"
-    private val IS_SHORTCUT_8 = "IS_SHORTCUT_8"
-    private val SHORTCUT_ID_8 = "SHORTCUT_ID_8"
 
     private val SHORTCUT_ID_SWIPE_LEFT = "SHORTCUT_ID_SWIPE_LEFT"
     private val IS_SHORTCUT_SWIPE_LEFT = "IS_SHORTCUT_SWIPE_LEFT"
@@ -336,6 +288,67 @@ class Prefs(context: Context) {
         get() = prefs.getFloat(SCRATCHPAD_LINE_SPACING, 1.3f)
         set(value) = prefs.edit { putFloat(SCRATCHPAD_LINE_SPACING, value).apply() }
 
+    // Experimental (Settings > Experimental)
+
+    /** Vertical padding multiplier of app labels, home and drawer. */
+    var appSpacing: Float
+        get() = prefs.getFloat("APP_SPACING", 1.0f)
+        set(value) = prefs.edit { putFloat("APP_SPACING", value) }
+
+    /** App label size multiplier, home and drawer, on top of the launcher text size. */
+    var appTextScale: Float
+        get() = prefs.getFloat("APP_TEXT_SCALE", 1.0f)
+        set(value) = prefs.edit { putFloat("APP_TEXT_SCALE", value) }
+
+    /** Gap (dp) under the home app grid. */
+    var homeBottomMargin: Int
+        get() = prefs.getInt("HOME_BOTTOM_MARGIN", 56)
+        set(value) = prefs.edit { putInt("HOME_BOTTOM_MARGIN", value) }
+
+    /** Home apps stacked in one column instead of two side by side. */
+    /** 1-3; 3 columns hold up to 15 apps. Defaults from the earlier one-column switch. */
+    var homeColumns: Int
+        get() = prefs.getInt("HOME_COLUMNS", if (prefs.getBoolean("HOME_ONE_COLUMN", false)) 1 else 3)
+        set(value) = prefs.edit { putInt("HOME_COLUMNS", value) }
+
+    /** Clock and date above the note instead of under it. */
+    var dateTimeTop: Boolean
+        get() = prefs.getBoolean("DATE_TIME_TOP", false)
+        set(value) = prefs.edit { putBoolean("DATE_TIME_TOP", value) }
+
+    /** Row of the emoji that start app names, above the drawer list. */
+    var drawerCategories: Boolean
+        get() = prefs.getBoolean("DRAWER_CATEGORIES", false)
+        set(value) = prefs.edit { putBoolean("DRAWER_CATEGORIES", value) }
+
+    /** Drawer entries ("package|user", or a shortcut id) listed after everything else. */
+    var sunkApps: Set<String>
+        get() = prefs.getStringSet("SUNK_APPS", emptySet()).orEmpty()
+        set(value) = prefs.edit { putStringSet("SUNK_APPS", value) }
+
+    var scratchpadPages: Int
+        get() = prefs.getInt("SCRATCHPAD_PAGES", 1)
+        set(value) = prefs.edit { putInt("SCRATCHPAD_PAGES", value) }
+
+    var scratchpadPage: Int
+        get() = prefs.getInt("SCRATCHPAD_PAGE", 0).coerceIn(0, scratchpadPages - 1)
+        set(value) = prefs.edit { putInt("SCRATCHPAD_PAGE", value) }
+
+    /** Note pages after the first; the first stays [scratchpadText] so sync and backup keep working. */
+    fun getScratchpadPage(page: Int): String =
+        if (page == 0) scratchpadText else scratchpadPrefs.getString("SCRATCHPAD_TEXT_$page", "").toString()
+
+    fun setScratchpadPage(page: Int, text: String) =
+        if (page == 0) scratchpadText = text else scratchpadPrefs.edit { putString("SCRATCHPAD_TEXT_$page", text) }
+
+    var homePages: Int
+        get() = prefs.getInt("HOME_PAGES", 1)
+        set(value) = prefs.edit { putInt("HOME_PAGES", value) }
+
+    var homePage: Int
+        get() = prefs.getInt("HOME_PAGE", 0).coerceIn(0, homePages - 1)
+        set(value) = prefs.edit { putInt("HOME_PAGE", value) }
+
     var proMessageShown: Boolean
         get() = prefs.getBoolean(PRO_MESSAGE_SHOWN, false)
         set(value) = prefs.edit { putBoolean(PRO_MESSAGE_SHOWN, value).apply() }
@@ -388,134 +401,6 @@ class Prefs(context: Context) {
     var swipeDownAction: Int
         get() = prefs.getInt(SWIPE_DOWN_ACTION, Constants.SwipeDownAction.NOTIFICATIONS)
         set(value) = prefs.edit { putInt(SWIPE_DOWN_ACTION, value).apply() }
-
-    var appName1: String
-        get() = prefs.getString(APP_NAME_1, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_1, value).apply() }
-
-    var appName2: String
-        get() = prefs.getString(APP_NAME_2, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_2, value).apply() }
-
-    var appName3: String
-        get() = prefs.getString(APP_NAME_3, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_3, value).apply() }
-
-    var appName4: String
-        get() = prefs.getString(APP_NAME_4, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_4, value).apply() }
-
-    var appName5: String
-        get() = prefs.getString(APP_NAME_5, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_5, value).apply() }
-
-    var appName6: String
-        get() = prefs.getString(APP_NAME_6, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_6, value).apply() }
-
-    var appName7: String
-        get() = prefs.getString(APP_NAME_7, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_7, value).apply() }
-
-    var appName8: String
-        get() = prefs.getString(APP_NAME_8, "").toString()
-        set(value) = prefs.edit { putString(APP_NAME_8, value).apply() }
-
-    var appPackage1: String
-        get() = prefs.getString(APP_PACKAGE_1, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_1, value).apply() }
-
-    var appPackage2: String
-        get() = prefs.getString(APP_PACKAGE_2, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_2, value).apply() }
-
-    var appPackage3: String
-        get() = prefs.getString(APP_PACKAGE_3, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_3, value).apply() }
-
-    var appPackage4: String
-        get() = prefs.getString(APP_PACKAGE_4, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_4, value).apply() }
-
-    var appPackage5: String
-        get() = prefs.getString(APP_PACKAGE_5, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_5, value).apply() }
-
-    var appPackage6: String
-        get() = prefs.getString(APP_PACKAGE_6, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_6, value).apply() }
-
-    var appPackage7: String
-        get() = prefs.getString(APP_PACKAGE_7, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_7, value).apply() }
-
-    var appPackage8: String
-        get() = prefs.getString(APP_PACKAGE_8, "").toString()
-        set(value) = prefs.edit { putString(APP_PACKAGE_8, value).apply() }
-
-    var appActivityClassName1: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_1, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_1, value).apply() }
-
-    var appActivityClassName2: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_2, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_2, value).apply() }
-
-    var appActivityClassName3: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_3, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_3, value).apply() }
-
-    var appActivityClassName4: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_4, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_4, value).apply() }
-
-    var appActivityClassName5: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_5, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_5, value).apply() }
-
-    var appActivityClassName6: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_6, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_6, value).apply() }
-
-    var appActivityClassName7: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_7, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_7, value).apply() }
-
-    var appActivityClassName8: String?
-        get() = prefs.getString(APP_ACTIVITY_CLASS_NAME_8, "").toString()
-        set(value) = prefs.edit { putString(APP_ACTIVITY_CLASS_NAME_8, value).apply() }
-
-    var appUser1: String
-        get() = prefs.getString(APP_USER_1, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_1, value).apply() }
-
-    var appUser2: String
-        get() = prefs.getString(APP_USER_2, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_2, value).apply() }
-
-    var appUser3: String
-        get() = prefs.getString(APP_USER_3, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_3, value).apply() }
-
-    var appUser4: String
-        get() = prefs.getString(APP_USER_4, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_4, value).apply() }
-
-    var appUser5: String
-        get() = prefs.getString(APP_USER_5, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_5, value).apply() }
-
-    var appUser6: String
-        get() = prefs.getString(APP_USER_6, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_6, value).apply() }
-
-    var appUser7: String
-        get() = prefs.getString(APP_USER_7, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_7, value).apply() }
-
-    var appUser8: String
-        get() = prefs.getString(APP_USER_8, "").toString()
-        set(value) = prefs.edit { putString(APP_USER_8, value).apply() }
 
     var appNameSwipeLeft: String
         get() = prefs.getString(APP_NAME_SWIPE_LEFT, "Camera").toString()
@@ -585,70 +470,6 @@ class Prefs(context: Context) {
         get() = prefs.getString(SCREEN_TIME_APP_CLASS_NAME, "").toString()
         set(value) = prefs.edit { putString(SCREEN_TIME_APP_CLASS_NAME, value).apply() }
 
-    var isShortcut1: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_1, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_1, value) }
-
-    var shortcutId1: String
-        get() = prefs.getString(SHORTCUT_ID_1, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_1, value) }
-
-    var isShortcut2: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_2, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_2, value) }
-
-    var shortcutId2: String
-        get() = prefs.getString(SHORTCUT_ID_2, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_2, value) }
-
-    var isShortcut3: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_3, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_3, value) }
-
-    var shortcutId3: String
-        get() = prefs.getString(SHORTCUT_ID_3, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_3, value) }
-
-    var isShortcut4: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_4, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_4, value) }
-
-    var shortcutId4: String
-        get() = prefs.getString(SHORTCUT_ID_4, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_4, value) }
-
-    var isShortcut5: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_5, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_5, value) }
-
-    var shortcutId5: String
-        get() = prefs.getString(SHORTCUT_ID_5, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_5, value) }
-
-    var isShortcut6: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_6, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_6, value) }
-
-    var shortcutId6: String
-        get() = prefs.getString(SHORTCUT_ID_6, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_6, value) }
-
-    var isShortcut7: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_7, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_7, value) }
-
-    var shortcutId7: String
-        get() = prefs.getString(SHORTCUT_ID_7, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_7, value) }
-
-    var isShortcut8: Boolean
-        get() = prefs.getBoolean(IS_SHORTCUT_8, false)
-        set(value) = prefs.edit { putBoolean(IS_SHORTCUT_8, value) }
-
-    var shortcutId8: String
-        get() = prefs.getString(SHORTCUT_ID_8, "").toString()
-        set(value) = prefs.edit { putString(SHORTCUT_ID_8, value) }
-
     var shortcutIdSwipeLeft: String
         get() = prefs.getString(SHORTCUT_ID_SWIPE_LEFT, "").toString()
         set(value) = prefs.edit { putString(SHORTCUT_ID_SWIPE_LEFT, value) }
@@ -665,52 +486,30 @@ class Prefs(context: Context) {
         get() = prefs.getBoolean(IS_SHORTCUT_SWIPE_RIGHT, false)
         set(value) = prefs.edit { putBoolean(IS_SHORTCUT_SWIPE_RIGHT, value) }
 
-    // Keep the original preference keys, including existing slots 1–8 and backups.
-    fun getAppName(location: Int): String = homeAppString("APP_NAME", location)
-    fun getAppPackage(location: Int): String = homeAppString("APP_PACKAGE", location)
-    fun getAppActivityClassName(location: Int): String = homeAppString("APP_ACTIVITY_CLASS_NAME", location)
-    fun getAppUser(location: Int): String = homeAppString("APP_USER", location)
-    fun getShortcutId(location: Int): String = homeAppString("SHORTCUT_ID", location)
-
-    private fun homeAppString(key: String, location: Int): String =
-        if (location in 1..Constants.MAX_HOME_APPS) prefs.getString("${key}_$location", "").orEmpty() else ""
-
-    fun getIsShortcut(location: Int): Boolean =
-        location in 1..Constants.MAX_HOME_APPS && prefs.getBoolean("IS_SHORTCUT_$location", false)
-
-    fun setAppName(location: Int, name: String) {
-        require(location in 1..Constants.MAX_HOME_APPS)
-        prefs.edit { putString("APP_NAME_$location", name) }
-    }
-
-    fun saveHomeApp(location: Int, name: String, packageName: String, user: String,
-                    activityClassName: String?, isShortcut: Boolean, shortcutId: String) {
-        require(location in 1..Constants.MAX_HOME_APPS)
-        prefs.edit {
-            putString("APP_NAME_$location", name)
-            putString("APP_PACKAGE_$location", packageName)
-            putString("APP_USER_$location", user)
-            putString("APP_ACTIVITY_CLASS_NAME_$location", activityClassName)
-            putBoolean("IS_SHORTCUT_$location", isShortcut)
-            putString("SHORTCUT_ID_$location", shortcutId)
-        }
-    }
-
-    fun clearHomeApp(location: Int) {
-        require(location in 1..Constants.MAX_HOME_APPS)
-        prefs.edit {
-            putString("APP_NAME_$location", "")
-            putString("APP_PACKAGE_$location", "")
-        }
-    }
-
-    fun setAppActivityClassName(location: Int, activityClassName: String) {
-        require(location in 1..Constants.MAX_HOME_APPS)
+    // Home slots: 1-8 on the first home page, 9-16 on the second, ... (keys unchanged for the first page)
+    fun getAppName(location: Int): String = prefs.getString("APP_NAME_$location", "").toString()
+    fun getAppPackage(location: Int): String = prefs.getString("APP_PACKAGE_$location", "").toString()
+    fun getAppActivityClassName(location: Int): String = prefs.getString("APP_ACTIVITY_CLASS_NAME_$location", "").toString()
+    fun getAppUser(location: Int): String = prefs.getString("APP_USER_$location", "").toString()
+    fun getShortcutId(location: Int): String = prefs.getString("SHORTCUT_ID_$location", "").toString()
+    fun getIsShortcut(location: Int): Boolean = prefs.getBoolean("IS_SHORTCUT_$location", false)
+    fun setAppName(location: Int, name: String) = prefs.edit { putString("APP_NAME_$location", name) }
+    fun setAppActivityClassName(location: Int, activityClassName: String?) =
         prefs.edit { putString("APP_ACTIVITY_CLASS_NAME_$location", activityClassName) }
+
+    fun setHomeApp(location: Int, name: String, packageName: String, user: String, activityClassName: String?, shortcutId: String?) = prefs.edit {
+        putString("APP_NAME_$location", name)
+        putString("APP_PACKAGE_$location", packageName)
+        putString("APP_USER_$location", user)
+        putString("APP_ACTIVITY_CLASS_NAME_$location", activityClassName)
+        putBoolean("IS_SHORTCUT_$location", shortcutId != null)
+        putString("SHORTCUT_ID_$location", shortcutId.orEmpty())
     }
+
+    fun clearHomeApp(location: Int) = prefs.edit { putString("APP_NAME_$location", ""); putString("APP_PACKAGE_$location", "") }
 
     fun updateAppActivityClassName(packageName: String, activityClassName: String) {
-        for (i in 1..Constants.MAX_HOME_APPS) {
+        for (i in 1..Constants.HOME_PAGE_SLOTS * homePages) {
             if (getAppPackage(i) == packageName) setAppActivityClassName(i, activityClassName)
         }
         if (clockAppPackage == packageName) clockAppClassName = activityClassName
