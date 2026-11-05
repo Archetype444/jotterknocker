@@ -452,8 +452,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         binding.scratchpad.let { pad ->
             // A drag that scrolled the note while editing is the user's own scroll: keep it on leaving
             var scrollOnDown = 0
-            // The note covers the top half, so home gestures also work on it while it's not being edited:
-            // sideways always, up/down once the note can't scroll further that way.
+            // Sideways home gestures still work on the note while it isn't being edited.
+            // Vertical gestures belong entirely to reading, including at the note's boundaries.
             var flung = false
             var multiTouch = false
             val noteGestures = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {

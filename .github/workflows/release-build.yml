@@ -30,7 +30,7 @@ jobs:
       - name: Layout contract, unit tests and lint
         run: |
           python scripts/check-fork-layout.py
-          bash gradlew testDebugUnitTest lintDebug lintRelease assembleDebug --no-daemon
+          bash gradlew testDebugUnitTest lintDebug lintRelease assembleDebug assembleDebugAndroidTest --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:

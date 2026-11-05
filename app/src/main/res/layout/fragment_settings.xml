@@ -399,7 +399,7 @@
                         style="@style/SettingsSummary" />
                 </LinearLayout>
 
-<LinearLayout style="@style/SettingsSwitchRow">
+                <LinearLayout style="@style/SettingsSwitchRow">
 
                     <TextView
                         style="@style/SettingsTitle"

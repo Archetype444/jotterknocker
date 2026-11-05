@@ -257,8 +257,6 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
                 populateScratchpadSize()
             }
 
-            R.id.tvGestures -> binding.flSwipeDown.visibility = View.VISIBLE
-
             R.id.appSpacingValue -> pick(R.string.app_spacing, scales(2.0f), prefs.appSpacing) { prefs.appSpacing = it; populateExperimental() }
             R.id.appTextScaleValue -> pick(R.string.app_text_size, bigScales(), prefs.appTextScale) { prefs.appTextScale = it; populateExperimental() }
             R.id.homeBottomMarginValue -> pick(R.string.home_bottom_margin, listOf(320, 240, 160, 120, 80, 56, 40, 24, 12, 0).map { "$it dp" to it }, prefs.homeBottomMargin) {

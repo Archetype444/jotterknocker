@@ -149,7 +149,7 @@ class MarkdownEditText @JvmOverloads constructor(
                     moved = true
                     removeCallbacks(longPress)
                 }
-                if (!dragging && moved && abs(dy) > abs(dx)) {
+                if (!dragging && moved && abs(dy) > configuration.scaledTouchSlop && abs(dy) > abs(dx)) {
                     dragging = true
                     // Remove only the recognition slop; preserve the rest of the first move.
                     lastY = downY + if (dy > 0) configuration.scaledTouchSlop else -configuration.scaledTouchSlop

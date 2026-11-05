@@ -47,6 +47,10 @@ class NoteInteractionTest {
             homePages = 1
             homeAppsNum = 15
             homeColumns = 3
+            scratchpadTextScale = 1f
+            appSpacing = 1f
+            appTextScale = 1f
+            homeBottomMargin = 56
             dateTimeVisibility = 0
             showStatusBar = true
             lockModeOn = false
