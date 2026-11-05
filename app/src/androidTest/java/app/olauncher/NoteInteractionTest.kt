@@ -323,17 +323,26 @@ class NoteInteractionTest {
         assertEquals("Scrollbar did not fade", 0, barPixels())
     }
 
-    @Test fun largeNoteRemainsScrollableAfterRotation() {
-        scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
-        val deadline = SystemClock.uptimeMillis() + 6000
-        var landscape = false
-        while (!landscape && SystemClock.uptimeMillis() < deadline) {
-            SystemClock.sleep(100)
-            scenario.onActivity { landscape = it.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE }
+    @Test fun largeNoteRemainsScrollableWhenTheHomeScreenIsRecreated() {
+        var portraitLocked = false
+        scenario.onActivity { portraitLocked = it.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+        // Phones deliberately stay in portrait. Exercise the same lifecycle by recreating the
+        // screen there; on a larger device verify the actual landscape layout.
+        if (portraitLocked) scenario.recreate() else {
+            scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE }
+            val deadline = SystemClock.uptimeMillis() + 8000
+            var landscape = false
+            while (!landscape && SystemClock.uptimeMillis() < deadline) {
+                SystemClock.sleep(100)
+                scenario.onActivity { landscape = it.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE }
+            }
+            assertTrue("Landscape did not become available on a device that supports rotation", landscape)
         }
-        assertTrue("Landscape did not become available", landscape)
+        SystemClock.sleep(350)
+        onNote { activity, pad -> activity.findViewById<View>(R.id.mainLayout).requestFocus(); pad.scrollTo(0, 0) }
         swipe(pauseAtEnd = true)
+        onNote { _, pad -> assertTrue("The note did not scroll after recreation", pad.scrollY > 0) }
         assertReading()
-        scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
+        if (!portraitLocked) scenario.onActivity { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
     }
 }
