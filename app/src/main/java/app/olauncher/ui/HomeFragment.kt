@@ -324,6 +324,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             R.id.setDefaultLauncher -> {
                 prefs.hideSetDefaultLauncher = true
                 binding.setDefaultLauncher.visibility = View.GONE
+                updateHomeBottomPadding(compactHomeRows(prefs.homeAppsNum))
                 if (viewModel.isOlauncherDefault.value != true) {
                     requireContext().showToast(R.string.set_as_default_launcher)
                     findNavController().navigate(R.id.action_mainFragment_to_settingsFragment)
@@ -349,6 +350,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             }
             if (binding.firstRunTips.isVisible) return@Observer
             binding.setDefaultLauncher.isVisible = it.not() && prefs.hideSetDefaultLauncher.not()
+            updateHomeBottomPadding(compactHomeRows(prefs.homeAppsNum))
         })
         viewModel.homeAppAlignment.observe(viewLifecycleOwner) {
             setHomeAlignment(it)
@@ -726,7 +728,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
     /** Keep the previous fork's scratchpad space when using three columns of five. */
     private fun fitFiveRows(count: Int) {
-        val compact = !recentsOn && prefs.homeColumns == 3 && count > 4 && prefs.homeBottomMargin == 56
+        val compact = compactHomeRows(count)
         slots.forEach { slot ->
             val metrics = slot.paint.fontMetricsInt
             val rowHeight = HomeGridSizing.rowHeight(metrics.bottom - metrics.top, slot.paddingTop, 48.dpToPx())
@@ -736,7 +738,16 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             }
             if (compact) slot.updatePadding(top = 0, bottom = 0)
         }
-        binding.homeAppsLayout.updatePadding(bottom = (if (compact) 8 else prefs.homeBottomMargin).dpToPx())
+        updateHomeBottomPadding(compact)
+    }
+
+    private fun compactHomeRows(count: Int) = !recentsOn && prefs.homeColumns == 3 && count > 4 && prefs.homeBottomMargin == 56
+
+    private fun updateHomeBottomPadding(compact: Boolean) {
+        // The initial setup prompts occupy the bottom gap until the user dismisses them.
+        val showingTip = binding.firstRunTips.isVisible || binding.setDefaultLauncher.isVisible
+        val gap = if (compact && !showingTip) 8 else prefs.homeBottomMargin
+        binding.homeAppsLayout.updatePadding(bottom = gap.dpToPx())
     }
 
     private fun setHomeAppText(

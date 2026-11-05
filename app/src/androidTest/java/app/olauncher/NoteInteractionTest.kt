@@ -119,6 +119,8 @@ class NoteInteractionTest {
         onNote { activity, pad ->
             val grid = activity.findViewById<LinearLayout>(R.id.homeAppsGrid)
             val controls = activity.findViewById<View>(R.id.homeControls)
+            val setupPrompt = activity.findViewById<View>(R.id.setDefaultLauncher)
+            val promptBounds = Rect().takeIf { setupPrompt.isShown && setupPrompt.getGlobalVisibleRect(it) }
             val rootBounds = Rect().also { pad.rootView.getGlobalVisibleRect(it) }
             val noteBounds = Rect().also { pad.getGlobalVisibleRect(it) }
             val controlBounds = Rect().also { controls.getGlobalVisibleRect(it) }
@@ -135,6 +137,7 @@ class NoteInteractionTest {
                     val bounds = Rect().also { assertTrue(label.getGlobalVisibleRect(it)) }
                     assertEquals("App label was clipped", label.height, bounds.height())
                     assertTrue(bounds.bottom <= rootBounds.bottom)
+                    if (promptBounds != null) assertTrue("Setup prompt overlaps an app label", bounds.bottom <= promptBounds.top)
                 }
             }
         }
