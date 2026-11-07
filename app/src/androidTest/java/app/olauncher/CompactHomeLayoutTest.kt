@@ -127,6 +127,7 @@ class CompactHomeLayoutTest {
             val insets = ViewCompat.getRootWindowInsets(home)!!
             val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
             val status = if (Prefs(activity).showStatusBar) insets.getInsets(WindowInsetsCompat.Type.statusBars()).top else 0
+            if (Prefs(activity).showStatusBar) assertTrue("Visible status bar has no usable inset", status > 0)
             assertEquals(maxOf(cutout, status), home.paddingTop)
             assertEquals(rect(home).top + home.paddingTop, rect(note).top)
             assertEquals(dp(note, 4f), note.paddingTop)
@@ -140,6 +141,9 @@ class CompactHomeLayoutTest {
         scenario.onActivity { activity ->
             val appArea = activity.findViewById<View>(R.id.homeAppsLayout)
             val home = activity.findViewById<View>(R.id.homeColumns)
+            val bars = ViewCompat.getRootWindowInsets(home)!!.getInsets(WindowInsetsCompat.Type.navigationBars())
+            assertTrue("Visible emulator navigation bar has no usable inset", bars.bottom > 0)
+            assertTrue("Apps overlap the navigation bar", home.paddingBottom >= bars.bottom)
             assertEquals(0, appArea.paddingBottom)
             assertEquals(rect(home).bottom - home.paddingBottom, rect(appArea).bottom)
             for (column in columns(activity)) {

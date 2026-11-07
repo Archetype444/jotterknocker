@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
-import android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -106,8 +105,6 @@ class MainActivity : AppCompatActivity() {
         initObservers(viewModel)
         viewModel.getAppList()
         setupOrientation()
-
-        window.addFlags(FLAG_LAYOUT_NO_LIMITS)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             profileReceiver = object : BroadcastReceiver() {
