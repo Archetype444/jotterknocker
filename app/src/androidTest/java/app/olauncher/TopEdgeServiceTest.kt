@@ -27,6 +27,7 @@ class TopEdgeServiceTest {
         val oldServices = shell("settings get secure enabled_accessibility_services").trim().takeUnless { it == "null" }.orEmpty()
         val oldEnabled = shell("settings get secure accessibility_enabled").trim().takeUnless { it == "null" } ?: "0"
         val component = "${ShadeTestTools.context.packageName}/app.olauncher.notifications.ShadeEdgeService"
+        var completed = false
         try {
             val services = (oldServices.split(':').filter { it.isNotBlank() } + component).distinct().joinToString(":")
             shell("settings put secure enabled_accessibility_services $services")
@@ -65,7 +66,12 @@ class TopEdgeServiceTest {
             device.waitForIdle(1000)
             pull()
             scenario.onActivity { assertFalse("Top-edge gesture outside home opened the launcher shade", it.notificationShade.isOpen) }
+            completed = true
         } finally {
+            if (!completed) {
+                android.util.Log.e("ShadeTest", shell("dumpsys window windows"))
+                ShadeTestTools.screenshot("jotterknocker-notification-preview.png")
+            }
             if (oldServices.isBlank()) shell("settings delete secure enabled_accessibility_services")
             else shell("settings put secure enabled_accessibility_services $oldServices")
             shell("settings put secure accessibility_enabled $oldEnabled")

@@ -97,7 +97,7 @@ jobs:
           target: google_apis
           profile: pixel_7_pro
           disable-animations: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -memory 2048 -noaudio -no-boot-anim -camera-back none
           script: bash scripts/run-emulator-tests.sh ${{ matrix.api }} ${{ matrix.resolution }} ${{ matrix.density }} ${{ matrix.font }} '${{ matrix.test_class }}'
       - uses: actions/upload-artifact@v4
         if: always()
@@ -140,7 +140,7 @@ jobs:
           target: google_apis
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -memory 2048 -noaudio -no-boot-anim -camera-back none
           script: bash scripts/test-fossify-calendar.sh
       - uses: actions/upload-artifact@v4
         if: always()

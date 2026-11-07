@@ -11,7 +11,7 @@ adb shell wm density
 status=0
 args=()
 if [ -n "${5:-}" ]; then args+=("-Pandroid.testInstrumentationRunnerArguments.class=$5"); fi
-bash gradlew connectedDebugAndroidTest --no-daemon "${args[@]}" || status=$?
+bash gradlew connectedDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2048m -Pkotlin.compiler.execution.strategy=in-process "${args[@]}" || status=$?
 preview=jotterknocker-preview.png
 if [ -n "${5:-}" ]; then preview=jotterknocker-compact-preview.png; fi
 timeout 15s adb pull "/data/local/tmp/$preview" "preview-api-$1.png" || {

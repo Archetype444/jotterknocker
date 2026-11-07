@@ -21,12 +21,18 @@ class ShadeEdgeService : AccessibilityService() {
     private var touching = false
     private var readyForInput = false
     private var systemWindowActive = false
+    private var nativeDismissAttempts = 0
     private val handler = Handler(Looper.getMainLooper())
     private val dismissNative = Runnable {
         val activity = host.get()
         if (activity != null && activity.notificationShade.isOpen && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            if (android.os.Build.VERSION.SDK_INT >= 31) performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
-            else if (systemWindowActive && !activity.hasWindowFocus()) performGlobalAction(GLOBAL_ACTION_BACK)
+            val attempt = nativeDismissAttempts++
+            // Android 16's SystemUI can retain its scene after the dedicated
+            // dismissal action. A single guarded Back closes that scene only.
+            val action = if (android.os.Build.VERSION.SDK_INT >= 31 && attempt == 0) GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE
+                else if (systemWindowActive && !activity.hasWindowFocus()) GLOBAL_ACTION_BACK else return@Runnable
+            val result = performGlobalAction(action)
+            if (app.olauncher.BuildConfig.DEBUG) android.util.Log.d("ShadeEdge", "Native action=$action result=$result focus=${activity.hasWindowFocus()} system=$systemWindowActive")
         }
     }
     private val manager get() = getSystemService(WINDOW_SERVICE) as WindowManager
@@ -40,6 +46,7 @@ class ShadeEdgeService : AccessibilityService() {
     override fun onDestroy() { handler.removeCallbacksAndMessages(null); removeStrip(); if (instance === this) instance = null; super.onDestroy() }
     private fun recoverNativeGesture() {
         handler.removeCallbacks(dismissNative)
+        nativeDismissAttempts = 0
         handler.postDelayed(dismissNative, 120)
         handler.postDelayed(dismissNative, 400)
     }

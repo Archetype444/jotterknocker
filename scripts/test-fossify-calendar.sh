@@ -10,7 +10,7 @@ adb shell pm grant org.fossify.calendar android.permission.WRITE_CALENDAR
 adb shell pm grant org.fossify.calendar android.permission.READ_CONTACTS
 adb shell pm grant org.fossify.calendar android.permission.WRITE_EXTERNAL_STORAGE
 status=0
-bash gradlew connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=app.olauncher.FossifyCalendarIntegrationTest -Pandroid.testInstrumentationRunnerArguments.requireFossify=true || status=$?
+bash gradlew connectedDebugAndroidTest --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2048m -Pkotlin.compiler.execution.strategy=in-process -Pandroid.testInstrumentationRunnerArguments.class=app.olauncher.FossifyCalendarIntegrationTest -Pandroid.testInstrumentationRunnerArguments.requireFossify=true || status=$?
 timeout 15s adb pull /data/local/tmp/jotterknocker-fossify-preview.png fossify-reminder-preview.png || true
 timeout 15s adb pull /data/local/tmp/jotterknocker-fossify-final.png fossify-final.png || true
 timeout 15s adb pull /sdcard/Android/data/app.scratchpad.launcher.debug/files/fossify-final.xml fossify-final.xml || true
