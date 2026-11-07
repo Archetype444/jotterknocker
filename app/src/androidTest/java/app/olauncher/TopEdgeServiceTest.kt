@@ -9,6 +9,7 @@ import android.view.InputDevice
 import android.view.MotionEvent
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.uiautomator.UiDevice
 import app.olauncher.notifications.NotificationAccess
 import org.junit.Assert.*
 import org.junit.Test
@@ -59,6 +60,9 @@ class TopEdgeServiceTest {
                 it.startActivity(Intent(Settings.ACTION_SETTINGS))
             }
             ShadeTestTools.waitFor("Home edge strip leaked into another app") { !app.olauncher.notifications.ShadeEdgeService.edgeAttached }
+            val device = UiDevice.getInstance(instrumentation)
+            ShadeTestTools.waitFor("Android Settings did not take the foreground") { device.currentPackageName == "com.android.settings" }
+            device.waitForIdle(1000)
             pull()
             scenario.onActivity { assertFalse("Top-edge gesture outside home opened the launcher shade", it.notificationShade.isOpen) }
         } finally {

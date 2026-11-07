@@ -90,6 +90,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     }
     private var activeNotices = emptyList<ShadeNotice>()
     private var activeMedia: ShadePlayback? = null
+    private var renderedMediaAppearance: List<Any>? = null
     private var oldAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
     private val homeContent = activity.findViewById<View>(R.id.nav_host_fragment)
 
@@ -204,6 +205,11 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     }
     private fun renderMedia() {
         val state = activeMedia
+        // Some players publish position updates every second. Only redraw the card
+        // when a visible value changes, so an e-ink screen can remain still.
+        val appearance = state?.let { listOf(it.packageName, it.title, it.artist, it.playing, it.actions, it.canSeek) }
+        if (appearance == renderedMediaAppearance) return
+        renderedMediaAppearance = appearance
         media.isVisible = state != null
         if (state == null) return
         mediaTitle.text = state.title.ifBlank { appName(state.packageName) }

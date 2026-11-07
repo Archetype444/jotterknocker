@@ -161,7 +161,7 @@ class NotificationShadeTest {
         assertTrue(NoticeStore.notices.value.any { it.title == "Ongoing service" })
     }
     @Test fun mediaSupportsSeparateTrackControlsAndAccurateFifteenSecondJumps() {
-        session("Episode", PlaybackState.STATE_PAUSED)
+        val player = session("Episode", PlaybackState.STATE_PAUSED)
         show()
         scenario.onActivity {
             it.findViewById<View>(R.id.shadeSeekForward).performClick()
@@ -172,6 +172,18 @@ class NotificationShadeTest {
         }
         ShadeTestTools.waitFor("Media commands not delivered") { calls.size >= 5 }
         assertEquals(listOf("seek:45000", "seek:60000", "seek:45000", "previous", "next"), calls.toList())
+        var textUpdates = 0
+        scenario.onActivity {
+            it.findViewById<TextView>(R.id.shadeMediaTitle).addTextChangedListener(object : android.text.TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) { textUpdates++ }
+                override fun afterTextChanged(s: android.text.Editable?) = Unit
+            })
+        }
+        ShadeTestTools.instrumentation.runOnMainSync { setState(player, PlaybackState.STATE_PAUSED, true, 75_000) }
+        ShadeTestTools.waitFor("Player position update not received") { ShadeMedia.playback.value?.position == 75_000L }
+        ShadeTestTools.instrumentation.waitForIdleSync()
+        scenario.onActivity { assertEquals("Position-only updates must not redraw the e-ink card", 0, textUpdates) }
     }
     @Test fun playingSessionWinsOverAnOlderPausedPlayerAndPausedCardRemains() {
         session("Old player", PlaybackState.STATE_PAUSED)
