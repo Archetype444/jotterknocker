@@ -35,7 +35,7 @@ class FossifyCalendarIntegrationTest {
         try {
             val launch = context.packageManager.getLaunchIntentForPackage(pkg)!!.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(launch)
-            assertTrue(device.wait(Until.hasObject(By.pkg(pkg).depth(0)), 15_000))
+            assertTrue(device.wait(Until.hasObject(By.res(pkg, "calendar_fab")), 15_000))
             // The default Fossify reminder is ten minutes before the event. Both real alarms
             // will fire about 90 seconds from now, without changing the emulator clock.
             val start = System.currentTimeMillis() + 690_000
@@ -56,6 +56,9 @@ class FossifyCalendarIntegrationTest {
                 save.click()
                 device.wait(Until.findObject(By.res("android", "button1")), 2500)?.click() // First-use reminder notice.
                 assertTrue("Fossify did not save the event", device.wait(Until.gone(By.res(pkg, "event_title")), 10_000))
+                // A dialog can hide the editor before the async save has finished.
+                // Wait for the calendar itself before sending another singleTask insert.
+                assertTrue("Fossify did not return to its calendar", device.wait(Until.hasObject(By.res(pkg, "calendar_fab")), 10_000))
             }
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             ShadeTestTools.waitFor("Fossify's scheduled notifications never arrived", 140_000) {
@@ -87,6 +90,7 @@ class FossifyCalendarIntegrationTest {
             }
         } finally {
             ShadeTestTools.screenshot("jotterknocker-fossify-final.png")
+            device.dumpWindowHierarchy(java.io.File(context.getExternalFilesDir(null), "fossify-final.xml"))
             scenario.close()
         }
     }

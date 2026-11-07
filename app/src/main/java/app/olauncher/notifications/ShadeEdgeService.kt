@@ -14,6 +14,7 @@ import java.lang.ref.WeakReference
 /** A home-only trusted overlay can receive the physical edge above the system status bar. */
 class ShadeEdgeService : AccessibilityService() {
     private var strip: View? = null
+    private var touching = false
     private val manager get() = getSystemService(WINDOW_SERVICE) as WindowManager
     override fun onServiceConnected() { super.onServiceConnected(); instance = this; sync() }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = sync()
@@ -21,7 +22,8 @@ class ShadeEdgeService : AccessibilityService() {
     override fun onDestroy() { removeStrip(); if (instance === this) instance = null; super.onDestroy() }
 
     private fun sync() {
-        if (host.get()?.isNotificationEdgeActive != true) { removeStrip(); return }
+        val activity = host.get()
+        if (activity?.isNotificationHomeVisible != true || activity.notificationShade.isOpen && !touching) { removeStrip(); return }
         if (strip != null) return
         val density = resources.displayMetrics.density
         val pull = TopEdgePull(24f * density)
@@ -34,12 +36,17 @@ class ShadeEdgeService : AccessibilityService() {
             setOnClickListener { host.get()?.openNotificationShade() }
             setOnTouchListener { v, event ->
                 when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> { pulled = false; startX = event.rawX; startY = event.rawY; pull.begin(startX, startY, true) }
+                    MotionEvent.ACTION_DOWN -> { touching = true; pulled = false; startX = event.rawX; startY = event.rawY; pull.begin(startX, startY, true) }
                     MotionEvent.ACTION_MOVE -> if (pull.move(event.rawX, event.rawY)) {
                         pulled = true; host.get()?.openNotificationShade()
                     }
-                    MotionEvent.ACTION_UP -> { pull.cancel(); if (!pulled && kotlin.math.abs(event.rawX - startX) < 8 * density && kotlin.math.abs(event.rawY - startY) < 8 * density) v.performClick() }
-                    MotionEvent.ACTION_CANCEL, MotionEvent.ACTION_POINTER_DOWN -> { pulled = true; pull.cancel() }
+                    MotionEvent.ACTION_UP -> {
+                        touching = false; pull.cancel()
+                        if (!pulled && kotlin.math.abs(event.rawX - startX) < 8 * density && kotlin.math.abs(event.rawY - startY) < 8 * density) v.performClick()
+                        sync()
+                    }
+                    MotionEvent.ACTION_CANCEL -> { touching = false; pulled = true; pull.cancel(); sync() }
+                    MotionEvent.ACTION_POINTER_DOWN -> { pulled = true; pull.cancel() }
                 }
                 true
             }
@@ -57,7 +64,12 @@ class ShadeEdgeService : AccessibilityService() {
         runCatching { manager.addView(view, params); strip = view }
     }
 
-    private fun removeStrip() { strip?.let { runCatching { manager.removeViewImmediate(it) } }; strip = null }
+    private fun removeStrip() {
+        val old = strip
+        strip = null
+        touching = false
+        old?.let { runCatching { manager.removeViewImmediate(it) } }
+    }
 
     companion object {
         private var instance: ShadeEdgeService? = null

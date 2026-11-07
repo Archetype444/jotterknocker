@@ -41,8 +41,8 @@ object ShadeTestTools {
         val component = "${context.packageName}/app.olauncher.notifications.LauncherNotificationListener"
         shell("cmd notification allow_listener $component")
         val old = shell("settings get secure enabled_notification_listeners").trim().takeUnless { it == "null" }.orEmpty()
-        val value = (old.split(':').filter { it.isNotBlank() } + component).distinct().joinToString(":")
-        shell("settings put secure enabled_notification_listeners '$value'")
+        val value = (old.split(':').map { it.trim('\'', '"') }.filter { it.isNotBlank() } + component).distinct().joinToString(":")
+        shell("settings put secure enabled_notification_listeners $value")
         waitFor("Notification listener never connected") { NoticeStore.connected.value }
     }
     fun launch(): ActivityScenario<MainActivity> = ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).also {

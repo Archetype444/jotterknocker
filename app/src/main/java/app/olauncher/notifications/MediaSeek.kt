@@ -3,7 +3,7 @@ package app.olauncher.notifications
 /** Android playback positions use elapsed real time, not the wall clock. */
 object MediaSeek {
     fun position(position: Long, updatedAt: Long, speed: Float, playing: Boolean, now: Long): Long? {
-        if (position < 0) return null
+        if (position < 0 || playing && !speed.isFinite()) return null
         val elapsed = if (playing && updatedAt > 0) (now - updatedAt).coerceAtLeast(0) else 0
         return (position.toDouble() + elapsed * speed.toDouble()).coerceIn(0.0, Long.MAX_VALUE.toDouble()).toLong()
     }

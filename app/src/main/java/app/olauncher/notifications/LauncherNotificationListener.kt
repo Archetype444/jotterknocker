@@ -82,7 +82,13 @@ class LauncherNotificationListener : NotificationListenerService() {
         }
     }
 
-    override fun onListenerDisconnected() { disconnect(); super.onListenerDisconnected() }
+    override fun onListenerDisconnected() {
+        disconnect()
+        super.onListenerDisconnected()
+        if (NotificationAccess.granted(this)) runCatching {
+            requestRebind(ComponentName(this, LauncherNotificationListener::class.java))
+        }
+    }
     override fun onDestroy() { disconnect(); super.onDestroy() }
     private fun disconnect() {
         if (instance === this) {

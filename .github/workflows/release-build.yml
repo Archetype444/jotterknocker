@@ -150,6 +150,7 @@ jobs:
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
             fossify-*.png
+            fossify-*.xml
             emulator-logcat.txt
           retention-days: 14
 

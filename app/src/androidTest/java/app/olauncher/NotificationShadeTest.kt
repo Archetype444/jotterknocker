@@ -41,7 +41,7 @@ class NotificationShadeTest {
     @Before fun setup() { ShadeTestTools.prepare(); scenario = ShadeTestTools.launch() }
     @After fun cleanup() {
         ShadeTestTools.instrumentation.runOnMainSync { sessions.forEach { it.release() } }
-        nm.cancelAll(); scenario.close()
+        nm.cancelAll(); if (::scenario.isInitialized) scenario.close()
     }
     private fun post(id: Int, title: String = "Calendar reminder", body: String = "Appointment at 14:00", configure: NotificationCompat.Builder.() -> Unit = {}) {
         val builder = NotificationCompat.Builder(context, ShadeTestTools.CHANNEL).setSmallIcon(android.R.drawable.ic_dialog_info)
@@ -196,6 +196,7 @@ class NotificationShadeTest {
             val root = it.findViewById<View>(R.id.notificationShade)
             val background = root.background as ColorDrawable
             assertEquals(Color.WHITE, background.color)
+            assertEquals("Shade must not fade over the note", 1f, root.alpha, 0f)
             val insets = ViewCompat.getRootWindowInsets(root)!!.getInsets(WindowInsetsCompat.Type.systemBars())
             assertTrue(root.paddingTop >= insets.top); assertTrue(root.paddingBottom >= insets.bottom)
             listOf(R.id.shadeSeekBack, R.id.shadeSeekForward, R.id.shadePlayPause, R.id.shadePrevious, R.id.shadeNext).forEach { id ->

@@ -28,7 +28,7 @@ class TopEdgeServiceTest {
         val component = "${ShadeTestTools.context.packageName}/app.olauncher.notifications.ShadeEdgeService"
         try {
             val services = (oldServices.split(':').filter { it.isNotBlank() } + component).distinct().joinToString(":")
-            shell("settings put secure enabled_accessibility_services '$services'")
+            shell("settings put secure enabled_accessibility_services $services")
             shell("settings put secure accessibility_enabled 1")
             ShadeTestTools.waitFor("Top-edge service was not enabled") { NotificationAccess.edgeGranted(ShadeTestTools.context) }
             // Wait for the actual service bind, not just the settings write.
@@ -56,7 +56,8 @@ class TopEdgeServiceTest {
             pull()
             scenario.onActivity { assertFalse("Top-edge gesture outside home opened the launcher shade", it.notificationShade.isOpen) }
         } finally {
-            shell("settings put secure enabled_accessibility_services '$oldServices'")
+            if (oldServices.isBlank()) shell("settings delete secure enabled_accessibility_services")
+            else shell("settings put secure enabled_accessibility_services $oldServices")
             shell("settings put secure accessibility_enabled $oldEnabled")
             scenario.close()
             instrumentation.getUiAutomation(0)

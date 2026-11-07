@@ -34,6 +34,7 @@ object ShadeMedia {
     private var manager: MediaSessionManager? = null
     private var current: MediaController? = null
     private val controllers = linkedMapOf<MediaSession.Token, Pair<MediaController, MediaController.Callback>>()
+    private var sessionOrder = emptyList<MediaSession.Token>()
     private val _playback = MutableStateFlow<ShadePlayback?>(null)
     val playback = _playback.asStateFlow()
     private var pendingSeek: Pair<Long, Long>? = null
@@ -52,6 +53,7 @@ object ShadeMedia {
         runCatching { manager?.removeOnActiveSessionsChangedListener(sessionsChanged) }
         controllers.values.forEach { (controller, callback) -> runCatching { controller.unregisterCallback(callback) } }
         controllers.clear()
+        sessionOrder = emptyList()
         handler.removeCallbacksAndMessages(null)
         manager = null
         current = null
@@ -60,6 +62,7 @@ object ShadeMedia {
     }
 
     private fun updateControllers(list: List<MediaController>) {
+        sessionOrder = list.map { it.sessionToken }
         val live = list.map { it.sessionToken }.toSet()
         controllers.keys.filter { it !in live }.toList().forEach { token ->
             controllers.remove(token)?.let { (controller, callback) -> runCatching { controller.unregisterCallback(callback) } }
@@ -80,7 +83,7 @@ object ShadeMedia {
 
     private fun publish() {
         fun state(controller: MediaController) = runCatching { controller.playbackState }.getOrNull()
-        val list = controllers.values.map { it.first }
+        val list = sessionOrder.mapNotNull { controllers[it]?.first }
         val selected = list.firstOrNull { state(it)?.state == PlaybackState.STATE_PLAYING }
             ?: list.firstOrNull { it.sessionToken == current?.sessionToken && state(it)?.state in listOf(PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING) }
             ?: list.firstOrNull { state(it)?.state in listOf(PlaybackState.STATE_PAUSED, PlaybackState.STATE_BUFFERING) }

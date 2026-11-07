@@ -13,4 +13,5 @@ status=0
 bash gradlew connectedDebugAndroidTest --no-daemon -Pandroid.testInstrumentationRunnerArguments.class=app.olauncher.FossifyCalendarIntegrationTest -Pandroid.testInstrumentationRunnerArguments.requireFossify=true || status=$?
 timeout 15s adb pull /data/local/tmp/jotterknocker-fossify-preview.png fossify-reminder-preview.png || true
 timeout 15s adb pull /data/local/tmp/jotterknocker-fossify-final.png fossify-final.png || true
+timeout 15s adb pull /sdcard/Android/data/app.scratchpad.launcher.debug/files/fossify-final.xml fossify-final.xml || true
 exit "$status"

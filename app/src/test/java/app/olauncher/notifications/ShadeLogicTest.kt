@@ -8,6 +8,10 @@ class ShadeLogicTest {
         assertEquals(13_000L, MediaSeek.position(10_000, 1000, 1.5f, true, 3000))
     }
     @Test fun pausedPositionDoesNotAdvance() { assertEquals(10_000L, MediaSeek.position(10_000, 1000, 1f, false, 9999)) }
+    @Test fun invalidSpeedCannotCauseAJumpToTheBeginning() {
+        assertNull(MediaSeek.position(1000, 1000, Float.NaN, true, 2000))
+        assertNull(MediaSeek.position(1000, 1000, Float.POSITIVE_INFINITY, true, 2000))
+    }
     @Test fun missingPositionCannotBeSought() { assertNull(MediaSeek.position(-1, 1000, 1f, true, 3000)) }
     @Test fun missingTimestampDoesNotInventElapsedPlayback() { assertEquals(500L, MediaSeek.position(500, 0, 1f, true, 9999)) }
     @Test fun futureTimestampDoesNotRunBackwards() { assertEquals(500L, MediaSeek.position(500, 9999, 1f, true, 1000)) }

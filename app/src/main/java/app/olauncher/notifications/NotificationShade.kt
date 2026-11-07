@@ -93,6 +93,8 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     private val homeContent = activity.findViewById<View>(R.id.nav_host_fragment)
 
     init {
+        // The activity's legacy layout transition would fade this page over the note.
+        parent.layoutTransition = null
         val header = LinearLayout(activity).apply {
             id = R.id.shadeHeader; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), 0, dp(4), 0)
             addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
@@ -150,6 +152,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
         oldAccessibility = homeContent.importantForAccessibility
         homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         view.visibility = View.VISIBLE
+        view.alpha = 1f
         view.requestFocus()
         ViewCompat.requestApplyInsets(view)
         refresh()
@@ -213,9 +216,16 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     private fun appName(pkg: String): String = runCatching { activity.packageManager.getApplicationLabel(activity.packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
     private fun mediaCommand(command: () -> Boolean) { if (!command()) Toast.makeText(activity, R.string.shade_media_failed, Toast.LENGTH_SHORT).show() }
     private fun send(intent: PendingIntent?, notice: ShadeNotice?, autoCancel: Boolean) {
+        if (!isOpen || !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         if (intent == null) { Toast.makeText(activity, R.string.shade_action_failed, Toast.LENGTH_SHORT).show(); return }
         runCatching {
-            intent.send()
+            val options = if (android.os.Build.VERSION.SDK_INT >= 34) android.app.ActivityOptions.makeBasic().apply {
+                // Only a visible, user-clicked shade can lend its launch privileges.
+                // API 36 adds the more restrictive ALLOW_IF_VISIBLE mode (value 4).
+                setPendingIntentBackgroundActivityStartMode(if (android.os.Build.VERSION.SDK_INT >= 36) 4
+                    else android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
+            }.toBundle() else null
+            intent.send(activity, 0, null, null, null, null, options)
             if (autoCancel && notice?.autoCancel == true) LauncherNotificationListener.dismiss(listOf(notice.key))
         }.onFailure { Toast.makeText(activity, R.string.shade_action_failed, Toast.LENGTH_SHORT).show() }
     }

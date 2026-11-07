@@ -54,8 +54,9 @@ class MainActivity : AppCompatActivity() {
         private set
     private val notificationEdge by lazy { app.olauncher.notifications.TopEdgePull(24f * resources.displayMetrics.density) }
     private var notificationEdgeConsumed = false
-    val isNotificationEdgeActive: Boolean get() = isResumed && hasWindowFocus() &&
-        ::navController.isInitialized && navController.currentDestination?.id == R.id.mainFragment &&
+    val isNotificationHomeVisible: Boolean get() = isResumed && hasWindowFocus() &&
+        ::navController.isInitialized && navController.currentDestination?.id == R.id.mainFragment
+    val isNotificationEdgeActive: Boolean get() = isNotificationHomeVisible &&
         ::notificationShade.isInitialized && !notificationShade.isOpen
 
     fun openNotificationShade() { if (isNotificationEdgeActive) notificationShade.show() }
