@@ -18,4 +18,5 @@ timeout 15s adb pull "/data/local/tmp/$preview" "preview-api-$1.png" || {
     if [ "$status" -eq 0 ]; then status=1; fi
 }
 timeout 15s adb pull /data/local/tmp/jotterknocker-compact-preview.png "compact-preview-api-$1.png" || true
+timeout 15s adb pull /data/local/tmp/jotterknocker-notification-preview.png "notification-preview-api-$1.png" || true
 exit "$status"

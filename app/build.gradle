@@ -17,8 +17,8 @@ android {
         applicationId "app.scratchpad.launcher"
         minSdkVersion 24
         targetSdkVersion 35
-        versionCode 101
-        versionName "2026.11.2"
+        versionCode 102
+        versionName "2026.11.3"
 
         resourceConfigurations += ["en", "ar", "de", "es-rES", "es-rUS", "fr", "he", "hr", "hu", "in", "it", "ja", "nl", "pl", "pt-rBR", "ru-rRU", "sv", "tr", "uk", "zh"]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -80,6 +80,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.6.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.3.0'
 
     testImplementation libs.kotlinx.coroutines.test
     testImplementation 'junit:junit:4.13.2'

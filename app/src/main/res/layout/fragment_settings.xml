@@ -52,6 +52,13 @@
 
             </LinearLayout>
 
+            <LinearLayout style="@style/SettingsCard">
+                <TextView
+                    android:id="@+id/notificationSettings"
+                    style="@style/SettingsAction"
+                    android:text="@string/shade_title" />
+            </LinearLayout>
+
             <TextView
                 style="@style/SettingsHeader"
                 android:text="@string/home_screen" />

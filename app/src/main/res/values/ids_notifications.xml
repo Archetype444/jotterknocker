@@ -1,0 +1,20 @@
+<resources>
+    <item name="notificationShade" type="id" />
+    <item name="shadeHeader" type="id" />
+    <item name="shadeClose" type="id" />
+    <item name="shadeClear" type="id" />
+    <item name="shadeSetup" type="id" />
+    <item name="shadeEmpty" type="id" />
+    <item name="shadeList" type="id" />
+    <item name="shadeMedia" type="id" />
+    <item name="shadeMediaTitle" type="id" />
+    <item name="shadePrevious" type="id" />
+    <item name="shadeNext" type="id" />
+    <item name="shadePlayPause" type="id" />
+    <item name="shadeSeekBack" type="id" />
+    <item name="shadeSeekForward" type="id" />
+    <item name="shadeNoticeTitle" type="id" />
+    <item name="shadeNoticeText" type="id" />
+    <item name="shadeNoticeActions" type="id" />
+    <item name="shadeNoticeDismiss" type="id" />
+</resources>

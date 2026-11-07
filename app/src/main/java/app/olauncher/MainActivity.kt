@@ -11,11 +11,14 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -47,6 +50,46 @@ class MainActivity : AppCompatActivity() {
     private var timerJob: Job? = null
     private var isResumed = false
     private var profileReceiver: BroadcastReceiver? = null
+    lateinit var notificationShade: app.olauncher.notifications.NotificationShade
+        private set
+    private val notificationEdge by lazy { app.olauncher.notifications.TopEdgePull(24f * resources.displayMetrics.density) }
+    private var notificationEdgeConsumed = false
+    val isNotificationEdgeActive: Boolean get() = isResumed && hasWindowFocus() &&
+        ::navController.isInitialized && navController.currentDestination?.id == R.id.mainFragment &&
+        ::notificationShade.isInitialized && !notificationShade.isOpen
+
+    fun openNotificationShade() { if (isNotificationEdgeActive) notificationShade.show() }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                notificationEdgeConsumed = false
+                val status = ViewCompat.getRootWindowInsets(window.decorView)?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
+                val origin = IntArray(2).also { window.decorView.getLocationOnScreen(it) }
+                val edgeBottom = origin[1] + status + 8 * resources.displayMetrics.density
+                notificationEdge.begin(event.rawX, event.rawY, isNotificationEdgeActive && event.rawY <= edgeBottom)
+            }
+            MotionEvent.ACTION_MOVE -> if (!notificationEdgeConsumed && notificationEdge.move(event.rawX, event.rawY)) {
+                val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
+                notificationEdgeConsumed = true
+                openNotificationShade()
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                notificationEdge.cancel()
+                if (notificationEdgeConsumed) { notificationEdgeConsumed = false; return true }
+            }
+            MotionEvent.ACTION_POINTER_DOWN -> notificationEdge.cancel()
+        }
+        return if (notificationEdgeConsumed) true else super.dispatchTouchEvent(event)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (::notificationShade.isInitialized && hasFocus) notificationShade.refresh()
+        app.olauncher.notifications.ShadeEdgeService.refresh()
+    }
+
 
 //    override fun onBackPressed() {
 //        if (navController.currentDestination?.id != R.id.mainFragment)
@@ -71,9 +114,13 @@ class MainActivity : AppCompatActivity() {
 
         navController = this.findNavController(R.id.nav_host_fragment)
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        notificationShade = app.olauncher.notifications.NotificationShade(this, binding.root)
+        app.olauncher.notifications.ShadeEdgeService.attach(this)
+        navController.addOnDestinationChangedListener { _, _, _ -> app.olauncher.notifications.ShadeEdgeService.refresh() }
 
         val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (notificationShade.close()) return
                 if (navController.currentDestination?.id != R.id.mainFragment) {
                     // then we might want to finish the activity or disable this callback.
                     if (navController.popBackStack()) {
@@ -129,11 +176,20 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isResumed = true
+        notificationShade.refresh()
+        app.olauncher.notifications.ShadeEdgeService.refresh()
         viewModel.isPrivateSpaceToggling = false
         viewModel.isPickingDocument = false
     }
 
+    override fun onPause() {
+        isResumed = false
+        app.olauncher.notifications.ShadeEdgeService.refresh()
+        super.onPause()
+    }
+
     override fun onStop() {
+        notificationShade.close()
         isResumed = false
         backToHomeScreen()
         super.onStop()
@@ -147,6 +203,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent?) {
         // Home button for recents feature disabled
         // val alreadyHome = navController.currentDestination?.id == R.id.mainFragment
+        notificationShade.close()
         backToHomeScreen()
         // if (alreadyHome && isResumed && prefs.homeButtonShowRecents)
         //     viewModel.showRecentApps.call()
@@ -285,6 +342,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        app.olauncher.notifications.ShadeEdgeService.detach(this)
         profileReceiver?.let {
             try {
                 unregisterReceiver(it)

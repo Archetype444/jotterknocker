@@ -317,6 +317,9 @@ class SettingsFragment : BaseFragment(), View.OnClickListener, View.OnLongClickL
     }
 
     private fun initClickListeners() {
+        binding.notificationSettings.setOnClickListener {
+            (requireActivity() as app.olauncher.MainActivity).notificationShade.showSettings()
+        }
         binding.hiddenApps.setOnClickListener(this)
         binding.scrollLayout.setOnClickListener(this)
         binding.appInfo.setOnClickListener(this)

@@ -1,0 +1,34 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="shade_title">Notifications</string>
+    <string name="shade_open">Open notifications</string>
+    <string name="shade_close">Close notifications</string>
+    <string name="shade_clear">Clear all</string>
+    <string name="shade_empty">No notifications</string>
+    <string name="shade_connecting">Connecting to notifications…</string>
+    <string name="shade_access_body">Allow notification access to show messages, calendar reminders and media controls here. Notifications stay on this phone.</string>
+    <string name="shade_access">Notification access</string>
+    <string name="shade_access_enabled">Notification access is on</string>
+    <string name="shade_edge_label">jotterknocker · Top-edge notifications</string>
+    <string name="shade_edge_description">Opens jotterknocker notifications when you pull down from the very top of the home screen. The touch strip is removed when you leave home. This service does not read screen contents or remap hardware buttons.</string>
+    <string name="shade_edge">Top-edge swipe</string>
+    <string name="shade_edge_enabled">Top-edge swipe is on</string>
+    <string name="shade_setup_body">Enable notification access first. For a swipe starting above the status bar, enable jotterknocker · Top-edge notifications in Accessibility. Both permissions can be turned off here.</string>
+    <string name="shade_calendar_help">Calendar reminders use Calendar’s notification settings and scheduled alarms. Allow its reminders and background activity in the phone settings.</string>
+    <string name="shade_settings_unavailable">Open the phone settings to enable notification access or Accessibility.</string>
+    <string name="shade_settings">Notification settings</string>
+    <string name="shade_previous">Previous track or episode</string>
+    <string name="shade_next">Next track or episode</string>
+    <string name="shade_play">Play</string>
+    <string name="shade_pause">Pause</string>
+    <string name="shade_back_15">Back 15 seconds</string>
+    <string name="shade_forward_15">Forward 15 seconds</string>
+    <string name="shade_minus_15">−15</string>
+    <string name="shade_plus_15">+15</string>
+    <string name="shade_dismiss">Dismiss notification</string>
+    <string name="shade_expand">Expand notification</string>
+    <string name="shade_collapse">Collapse notification</string>
+    <string name="shade_action_failed">This action is no longer available.</string>
+    <string name="shade_media_failed">This player did not accept the control.</string>
+    <string name="shade_more">More</string>
+    <string name="shade_less">Less</string>
+</resources>
