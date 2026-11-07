@@ -19,7 +19,7 @@ class HomeAppTextView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         if (!alignInkToBottom || layout == null) { super.onDraw(canvas); return }
-        val label = if (text.isNullOrEmpty()) hint.orEmpty() else text
+        val label = if (text.isNullOrEmpty()) hint ?: "" else text
         val available = (width - compoundPaddingLeft - compoundPaddingRight).coerceAtLeast(0).toFloat()
         val visible = TextUtils.ellipsize(label, paint, available, ellipsize ?: TextUtils.TruncateAt.END).toString()
         if (visible.isBlank()) { super.onDraw(canvas); return }
