@@ -12,6 +12,7 @@ import android.graphics.Rect
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.view.InputDevice
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -19,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -46,15 +48,21 @@ class NoteInteractionTest {
         Prefs(context).apply {
             firstOpen = false
             firstSettingsOpen = false
+            hideSetDefaultLauncher = false
             scratchpadText = note
             scratchpadPages = 1
             homePages = 1
+            homePage = 0
             homeAppsNum = 15
             homeColumns = 3
             scratchpadTextScale = 1f
             appSpacing = 1f
             appTextScale = 1f
             homeBottomMargin = 56
+            homeAlignment = Gravity.START
+            clockMargin = 0
+            dateMargin = 0
+            appTheme = AppCompatDelegate.MODE_NIGHT_YES
             dateTimeVisibility = 1
             dateTimeTop = false
             recentAppsColumn = 0
@@ -313,7 +321,7 @@ class NoteInteractionTest {
                 if (reveal) pad.scrollTo(0, pad.scrollY + 10)
                 val image = Bitmap.createBitmap(pad.width, pad.height, Bitmap.Config.ARGB_8888)
                 pad.draw(Canvas(image))
-                val x = (10 * pad.resources.displayMetrics.density).toInt()
+                val x = (pad.resources.displayMetrics.density).toInt().coerceAtLeast(0)
                 for (y in 0 until image.height) {
                     if ((image.getPixel(x, y) ushr 24) != 0) {
                         assertTrue("Scrollbar escaped the text viewport", y >= pad.totalPaddingTop && y < pad.height - pad.totalPaddingBottom)

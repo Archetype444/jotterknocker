@@ -43,9 +43,11 @@
             android:inputType="textMultiLine|textCapSentences"
             android:shadowDy="0"
             android:overScrollMode="never"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="56dp"
+            android:includeFontPadding="false"
+            android:paddingStart="@dimen/home_content_start"
+            android:paddingEnd="0dp"
+            android:paddingTop="@dimen/home_note_top"
+            android:paddingBottom="0dp"
             android:saveEnabled="false"
             android:textColor="?attr/primaryColor"
             android:textColorHint="?attr/primaryColorTrans50" />
@@ -57,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="0dp"
             android:alpha="0.6"
             android:visibility="gone"
             tools:text="● ○ ○"
@@ -80,8 +82,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
+            android:paddingStart="@dimen/home_content_start"
+            android:paddingEnd="0dp"
             android:paddingTop="8dp"
             android:paddingBottom="56dp">
 
@@ -95,7 +97,7 @@
             <!-- Clock and calendar: pinned right below scratchpad -->
             <LinearLayout
                 android:id="@+id/dateTimeLayout"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top"
                 android:orientation="vertical"
@@ -134,7 +136,7 @@
                 <TextView
                     android:id="@+id/date"
                     style="@style/TextDefault"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:format12Hour="EEE, dd MMM"
@@ -162,7 +164,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp1"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -177,7 +179,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp2"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -192,7 +194,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp3"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -207,7 +209,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp4"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -230,7 +232,7 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp5"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -245,7 +247,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp6"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -260,7 +262,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp7"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"
@@ -275,7 +277,7 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
-                        <TextView
+                        <app.olauncher.ui.HomeAppTextView
                             android:id="@+id/homeApp8"
                             style="@style/TextLarge"
                             android:fontFamily="sans-serif"

@@ -8,4 +8,6 @@ Read-mode touches do not reach EditText. Only a confirmed tap enters editing. Ve
 
 The app has no EXPAND_STATUS_BAR permission or launcher swipe-down action. Android still handles the top-edge notification gesture.
 
+Home content uses a shared 6dp start inset and no end inset. The note starts 4dp below actual system bars/cutouts; page indicators reserve space only when enabled. Selecting a 0dp bottom gap also removes the last row's label padding and aligns its visible glyphs to the bottom edge. Required system navigation space and visible setup prompts remain protected.
+
 Upstream synchronization is manual, as selected by the repository owner. Review overlapping changes, preserve the fork features, and run checks before publishing. The release workflow tests touch interactions on Android emulators before building an unsigned release for local signing with the existing private key.

@@ -18,7 +18,7 @@ def check(root=ROOT):
     assert 'extraSlots = (9..15)' in home
     assert 'all.chunked(if (columns == 3) 5' in home
     assert 'HomeGridSizing.rowHeight' in home
-    assert 'if (compact && !showingTip) 8 else prefs.homeBottomMargin' in home
+    assert 'if (showingTip) maxOf(56, prefs.homeBottomMargin) else if (compact) 8 else prefs.homeBottomMargin' in home
     assert 'else 3)' in (java / 'data/Prefs.kt').read_text()
     assert 'EXPAND_STATUS_BAR' not in (root / 'app/src/main/AndroidManifest.xml').read_text()
     assert 'expandNotificationDrawer' not in home

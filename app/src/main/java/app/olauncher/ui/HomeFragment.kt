@@ -39,6 +39,7 @@ import androidx.core.view.children
 import androidx.core.view.updatePadding
 import androidx.core.view.setPadding
 import androidx.core.view.doOnLayout
+import androidx.core.view.doOnAttach
 import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -121,6 +122,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         scratchpadDebouncer = Debouncer(viewLifecycleOwner.lifecycleScope, 300L)
         applyLandscape()
         applyHomeLayout()
+        initHomeInsets()
         initScratchpad()
         initObservers()
         setHomeAlignment(prefs.homeAlignment)
@@ -181,13 +183,30 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         if (prefs.dateTimeTop && resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
             val dateTime = binding.dateTimeLayout
             binding.homeAppsLayout.removeView(dateTime)
-            dateTime.updatePadding(left = 24.dpToPx(), top = 48.dpToPx(), right = 24.dpToPx())
+            dateTime.updatePadding(left = resources.getDimensionPixelSize(R.dimen.home_content_start), top = 0, right = 0)
             binding.homeColumns.addView(dateTime, 0, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             binding.date.updatePadding(bottom = 0)
-            // Room for the page dots only when they show; otherwise the note starts right under the date.
-            binding.scratchpad.updatePadding(top = (if (prefs.scratchpadPages > 1) 20 else 4).dpToPx())
             (binding.notePageDots.layoutParams as ViewGroup.MarginLayoutParams).topMargin = 0
         }
+        binding.scratchpad.updatePadding(top = resources.getDimensionPixelSize(
+            if (prefs.scratchpadPages > 1) R.dimen.home_note_pages_top else R.dimen.home_note_top))
+    }
+
+    /** Reserve only real system bars/cutouts; spacing inside the home screen stays compact. */
+    private fun initHomeInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.homeColumns) { view, insets ->
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val bars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            val statusTop = if (prefs.showStatusBar) insets.getInsets(WindowInsetsCompat.Type.statusBars()).top else 0
+            view.updatePadding(
+                left = maxOf(cutout.left, bars.left),
+                top = maxOf(cutout.top, statusTop),
+                right = maxOf(cutout.right, bars.right),
+                bottom = maxOf(cutout.bottom, bars.bottom),
+            )
+            insets
+        }
+        binding.homeColumns.doOnAttach { ViewCompat.requestApplyInsets(it) }
     }
 
     /** Rebuilds the grid as columns filled top to bottom: one column of 8, or three of 5 (15 apps). */
@@ -714,9 +733,8 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
         val homeAppsNum = if (recentsOn) prefs.homeAppsNum.coerceAtMost(4) else prefs.homeAppsNum
         if (recentsOn) populateRecentApps()
         slots.forEach { it.applyAppLabelStyle(prefs, R.dimen.home_app_padding_vertical) }
-        fitFiveRows(homeAppsNum)
         updatePageDots()
-        if (homeAppsNum == 0) return
+        if (homeAppsNum == 0) { fitFiveRows(homeAppsNum); return }
 
         slots.take(homeAppsNum).forEachIndexed { i, view ->
             val location = location(i + 1)
@@ -724,12 +742,15 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             if (!setHomeAppText(view, prefs.getAppName(location), prefs.getAppPackage(location), prefs.getAppUser(location), prefs.getIsShortcut(location), prefs.getShortcutId(location)))
                 prefs.clearHomeApp(location)
         }
+        fitFiveRows(homeAppsNum)
     }
 
     /** Keep the previous fork's scratchpad space when using three columns of five. */
     private fun fitFiveRows(count: Int) {
         val compact = compactHomeRows(count)
         slots.forEach { slot ->
+            (slot as HomeAppTextView).alignInkToBottom = false
+            slot.includeFontPadding = true
             val metrics = slot.paint.fontMetricsInt
             val rowHeight = HomeGridSizing.rowHeight(metrics.bottom - metrics.top, slot.paddingTop, 48.dpToPx())
             slot.gravity = prefs.homeAlignment or Gravity.CENTER_VERTICAL
@@ -739,6 +760,15 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
             if (compact) slot.updatePadding(top = 0, bottom = 0)
         }
         updateHomeBottomPadding(compact)
+        if (prefs.homeBottomMargin == 0) {
+            binding.homeAppsGrid.children.filterIsInstance<LinearLayout>().forEach { column ->
+                (column.children.lastOrNull { it.isVisible } as? HomeAppTextView)?.let { label ->
+                    label.includeFontPadding = false
+                    label.updatePadding(bottom = 0)
+                    label.alignInkToBottom = true
+                }
+            }
+        }
     }
 
     private fun compactHomeRows(count: Int) = !recentsOn && prefs.homeColumns == 3 && count > 4 && prefs.homeBottomMargin == 56
@@ -746,7 +776,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
     private fun updateHomeBottomPadding(compact: Boolean) {
         // The initial setup prompts occupy the bottom gap until the user dismisses them.
         val showingTip = binding.firstRunTips.isVisible || binding.setDefaultLauncher.isVisible
-        val gap = if (compact && !showingTip) 8 else prefs.homeBottomMargin
+        val gap = if (showingTip) maxOf(56, prefs.homeBottomMargin) else if (compact) 8 else prefs.homeBottomMargin
         binding.homeAppsLayout.updatePadding(bottom = gap.dpToPx())
     }
 
@@ -833,6 +863,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
                 slot.alpha = RECENT_APP_ALPHA
                 slot.setLeadingIcon(icon)
             }
+            fitFiveRows(prefs.homeAppsNum.coerceAtMost(4))
         }
     }
 

@@ -273,7 +273,7 @@ class MarkdownEditText @JvmOverloads constructor(
         canvas.clipRect(0, 0, width, height)
         thumbPaint.color = currentTextColor
         thumbPaint.alpha = (thumbAlpha * 190).roundToInt().coerceIn(0, 255)
-        val left = 9f * density
+        val left = 0f
         val thickness = 2.5f * density
         canvas.drawRoundRect(left, thumb.top, left + thickness, thumb.top + thumb.height,
             thickness / 2, thickness / 2, thumbPaint)

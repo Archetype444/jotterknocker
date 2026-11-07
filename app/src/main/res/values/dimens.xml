@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="home_content_start">6dp</dimen>
+    <dimen name="home_note_top">4dp</dimen>
+    <dimen name="home_note_pages_top">20dp</dimen>
     <dimen name="alphabet_recycler_margin_bottom">16dp</dimen>
     <dimen name="alphabet_recycler_margin_end">10dp</dimen>
     <dimen name="alphabet_recycler_margin_start">320dp</dimen>

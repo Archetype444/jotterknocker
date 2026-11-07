@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Home slots 9-15, added in code for the three-column layout; matches homeApp1-8 in fragment_home.xml -->
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<app.olauncher.ui.HomeAppTextView xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/TextLarge"
     android:fontFamily="sans-serif"
     android:layout_width="match_parent"
