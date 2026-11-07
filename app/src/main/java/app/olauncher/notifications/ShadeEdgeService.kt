@@ -27,10 +27,13 @@ class ShadeEdgeService : AccessibilityService() {
         val activity = host.get()
         if (activity != null && activity.notificationShade.isOpen && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             val attempt = nativeDismissAttempts++
-            // Android 16's SystemUI can retain its scene after the dedicated
-            // dismissal action. A single guarded Back closes that scene only.
-            val action = if (android.os.Build.VERSION.SDK_INT >= 31 && attempt == 0) GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE
-                else if (systemWindowActive && !activity.hasWindowFocus()) GLOBAL_ACTION_BACK else return@Runnable
+            // SystemUI may finish taking the gesture after the first dismissal.
+            // Newer scene-based shades do not always emit a window-state event.
+            // A final Back is bounded to this Home pull, while our pane remains
+            // open and RESUMED but a system window has taken input focus.
+            val modern = android.os.Build.VERSION.SDK_INT >= 31
+            val action = if (modern && attempt < 2) GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE
+                else if (!activity.hasWindowFocus() && (modern || systemWindowActive)) GLOBAL_ACTION_BACK else return@Runnable
             val result = performGlobalAction(action)
             if (app.olauncher.BuildConfig.DEBUG) android.util.Log.d("ShadeEdge", "Native action=$action result=$result focus=${activity.hasWindowFocus()} system=$systemWindowActive")
         }
@@ -49,6 +52,7 @@ class ShadeEdgeService : AccessibilityService() {
         nativeDismissAttempts = 0
         handler.postDelayed(dismissNative, 120)
         handler.postDelayed(dismissNative, 400)
+        handler.postDelayed(dismissNative, 900)
     }
 
     private fun sync() {

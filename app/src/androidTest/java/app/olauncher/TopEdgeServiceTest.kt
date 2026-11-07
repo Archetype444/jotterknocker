@@ -36,6 +36,10 @@ class TopEdgeServiceTest {
             // Wait for the actual service bind, not just the settings write.
             ShadeTestTools.waitFor("Home edge strip was not attached", timeout = 25_000) { app.olauncher.notifications.ShadeEdgeService.edgeAttached }
             instrumentation.waitForIdleSync()
+            val device = UiDevice.getInstance(instrumentation)
+            // A laid-out transparent window can precede InputDispatcher's
+            // surface transaction. Wait for the window transition to settle.
+            device.waitForIdle(1500)
             var width = 0
             scenario.onActivity { width = it.window.decorView.width; assertFalse(it.notificationShade.isOpen) }
             fun pull() {
@@ -61,7 +65,6 @@ class TopEdgeServiceTest {
                 it.startActivity(Intent(Settings.ACTION_SETTINGS))
             }
             ShadeTestTools.waitFor("Home edge strip leaked into another app") { !app.olauncher.notifications.ShadeEdgeService.edgeAttached }
-            val device = UiDevice.getInstance(instrumentation)
             ShadeTestTools.waitFor("Android Settings did not take the foreground") { device.currentPackageName == "com.android.settings" }
             device.waitForIdle(1000)
             pull()
