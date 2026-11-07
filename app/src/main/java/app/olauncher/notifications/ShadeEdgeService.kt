@@ -15,6 +15,7 @@ import java.lang.ref.WeakReference
 class ShadeEdgeService : AccessibilityService() {
     private var strip: View? = null
     private var touching = false
+    private var drawn = false
     private val manager get() = getSystemService(WINDOW_SERVICE) as WindowManager
     override fun onServiceConnected() { super.onServiceConnected(); instance = this; sync() }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) = sync()
@@ -35,12 +36,15 @@ class ShadeEdgeService : AccessibilityService() {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             setOnClickListener { host.get()?.openNotificationShade() }
             setOnTouchListener { v, event ->
+                if (app.olauncher.BuildConfig.DEBUG) android.util.Log.d("ShadeEdge", "Touch ${event.actionMasked}, home=${host.get()?.isNotificationHomeVisible}")
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> { touching = true; pulled = false; startX = event.rawX; startY = event.rawY; pull.begin(startX, startY, true) }
                     MotionEvent.ACTION_MOVE -> if (pull.move(event.rawX, event.rawY)) {
                         pulled = true; host.get()?.openNotificationShade()
                     }
                     MotionEvent.ACTION_UP -> {
+                        // A fast swipe may deliver its final distance only in the up event.
+                        if (pull.move(event.rawX, event.rawY)) { pulled = true; host.get()?.openNotificationShade() }
                         touching = false; pull.cancel()
                         if (!pulled && kotlin.math.abs(event.rawX - startX) < 8 * density && kotlin.math.abs(event.rawY - startY) < 8 * density) v.performClick()
                         sync()
@@ -51,6 +55,12 @@ class ShadeEdgeService : AccessibilityService() {
                 true
             }
         }
+        view.viewTreeObserver.addOnDrawListener(object : android.view.ViewTreeObserver.OnDrawListener {
+            private var posted = false
+            override fun onDraw() {
+                if (!posted) { posted = true; view.post { if (strip === view) drawn = true } }
+            }
+        })
         val height = (12 * density).toInt().coerceAtLeast(1)
         val params = WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, height,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
@@ -68,12 +78,13 @@ class ShadeEdgeService : AccessibilityService() {
         val old = strip
         strip = null
         touching = false
+        drawn = false
         old?.let { runCatching { manager.removeViewImmediate(it) } }
     }
 
     companion object {
         private var instance: ShadeEdgeService? = null
-        internal val edgeAttached get() = instance?.strip?.isAttachedToWindow == true
+        internal val edgeAttached get() = instance?.let { it.drawn && it.strip?.isAttachedToWindow == true } == true
         private var host = WeakReference<MainActivity>(null)
         fun attach(activity: MainActivity) { host = WeakReference(activity); refresh() }
         fun detach(activity: MainActivity) { if (host.get() === activity) { host.clear(); refresh() } }

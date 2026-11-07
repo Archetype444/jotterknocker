@@ -98,6 +98,10 @@ class NotificationShadeTest {
             }
             assertTrue(a.notificationShade.isOpen)
             a.notificationShade.close()
+            MotionEvent.obtain(now + 60, now + 60, MotionEvent.ACTION_DOWN, x, inset + 2f, 0).also { a.dispatchTouchEvent(it); it.recycle() }
+            MotionEvent.obtain(now + 60, now + 90, MotionEvent.ACTION_UP, x, inset + 120f, 0).also { a.dispatchTouchEvent(it); it.recycle() }
+            assertTrue("A batched fast swipe must open on the up event", a.notificationShade.isOpen)
+            a.notificationShade.close()
             val start = inset + 140f
             listOf(MotionEvent.ACTION_DOWN to start, MotionEvent.ACTION_MOVE to start + 90, MotionEvent.ACTION_UP to start + 90).forEachIndexed { i, (action, y) ->
                 MotionEvent.obtain(now + 100, now + 100 + i * 20, action, x, y, 0).also { a.dispatchTouchEvent(it); it.recycle() }

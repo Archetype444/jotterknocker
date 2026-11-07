@@ -70,13 +70,19 @@ class MainActivity : AppCompatActivity() {
                 val edgeBottom = origin[1] + status + 8 * resources.displayMetrics.density
                 notificationEdge.begin(event.rawX, event.rawY, isNotificationEdgeActive && event.rawY <= edgeBottom)
             }
-            MotionEvent.ACTION_MOVE -> if (!notificationEdgeConsumed && notificationEdge.move(event.rawX, event.rawY)) {
-                val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
-                try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
-                notificationEdgeConsumed = true
-                openNotificationShade()
+            MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
+                if (!notificationEdgeConsumed && notificationEdge.move(event.rawX, event.rawY)) {
+                    val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                    try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
+                    notificationEdgeConsumed = true
+                    openNotificationShade()
+                }
+                if (event.actionMasked == MotionEvent.ACTION_UP) {
+                    notificationEdge.cancel()
+                    if (notificationEdgeConsumed) { notificationEdgeConsumed = false; return true }
+                }
             }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            MotionEvent.ACTION_CANCEL -> {
                 notificationEdge.cancel()
                 if (notificationEdgeConsumed) { notificationEdgeConsumed = false; return true }
             }

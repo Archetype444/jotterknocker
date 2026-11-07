@@ -33,6 +33,7 @@ class TopEdgeServiceTest {
             ShadeTestTools.waitFor("Top-edge service was not enabled") { NotificationAccess.edgeGranted(ShadeTestTools.context) }
             // Wait for the actual service bind, not just the settings write.
             ShadeTestTools.waitFor("Home edge strip was not attached") { app.olauncher.notifications.ShadeEdgeService.edgeAttached }
+            instrumentation.waitForIdleSync()
             var width = 0
             scenario.onActivity { width = it.window.decorView.width; assertFalse(it.notificationShade.isOpen) }
             fun pull() {
@@ -42,6 +43,7 @@ class TopEdgeServiceTest {
                     val event = MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, width * 0.75f, 1f + step * 12f, 0)
                     event.source = InputDevice.SOURCE_TOUCHSCREEN
                     try { assertTrue("Could not inject edge touch", automation.injectInputEvent(event, true)) } finally { event.recycle() }
+                    SystemClock.sleep(16) // A real timed input stream, including Android's batching.
                 }
             }
             pull()

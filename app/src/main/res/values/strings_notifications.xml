@@ -15,7 +15,7 @@
     <string name="shade_setup_body">Enable notification access first. For a swipe starting above the status bar, enable jotterknocker · Top-edge notifications in Accessibility. Both permissions can be turned off here.</string>
     <string name="shade_calendar_help">Calendar reminders use Calendar’s notification settings and scheduled alarms. Allow its reminders and background activity in the phone settings.</string>
     <string name="shade_settings_unavailable">Open the phone settings to enable notification access or Accessibility.</string>
-    <string name="shade_settings">Notification settings</string>
+    <string name="shade_settings">Settings</string>
     <string name="shade_previous">Previous track or episode</string>
     <string name="shade_next">Next track or episode</string>
     <string name="shade_play">Play</string>

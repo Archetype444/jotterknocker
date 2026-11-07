@@ -25,6 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -98,7 +99,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
         val header = LinearLayout(activity).apply {
             id = R.id.shadeHeader; gravity = Gravity.CENTER_VERTICAL; setPadding(dp(12), 0, dp(4), 0)
             addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            addView(icon(R.drawable.shade_close, R.string.shade_close).apply { id = R.id.shadeClose; setOnClickListener { close() } }, LinearLayout.LayoutParams(dp(48), dp(48)))
+            addView(icon(R.drawable.shade_close, R.string.shade_close).apply { id = R.id.shadeClose; background = android.graphics.drawable.ColorDrawable(Color.WHITE); setOnClickListener { close() } }, LinearLayout.LayoutParams(dp(48), dp(48)))
         }
         var startY = 0f
         header.setOnClickListener { }
@@ -127,7 +128,8 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
         view.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
         view.addView(rule())
         val footer = LinearLayout(activity).apply { setPadding(dp(8), 0, dp(8), 0) }
-        footer.addView(button(activity.getString(R.string.shade_settings)).apply { setOnClickListener { showSettings() } }, LinearLayout.LayoutParams(0, dp(48), 1f))
+        footer.addView(button(activity.getString(R.string.shade_settings)).apply { background = android.graphics.drawable.ColorDrawable(Color.WHITE); setOnClickListener { showSettings() } }, LinearLayout.LayoutParams(0, dp(48), 1f))
+        clear.background = android.graphics.drawable.ColorDrawable(Color.WHITE)
         footer.addView(clear, LinearLayout.LayoutParams(0, dp(48), 1f))
         view.addView(footer)
         parent.addView(view, FrameLayout.LayoutParams(-1, -1))
@@ -215,17 +217,20 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     }
     private fun appName(pkg: String): String = runCatching { activity.packageManager.getApplicationLabel(activity.packageManager.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
     private fun mediaCommand(command: () -> Boolean) { if (!command()) Toast.makeText(activity, R.string.shade_media_failed, Toast.LENGTH_SHORT).show() }
+    @android.annotation.SuppressLint("WrongConstant") // SDK 35's IntDef predates the documented API 36 value.
+    private fun notificationLaunchOptions(): android.os.Bundle? {
+        if (android.os.Build.VERSION.SDK_INT < 34) return null
+        return android.app.ActivityOptions.makeBasic().apply {
+            // MODE_BACKGROUND_ACTIVITY_START_ALLOW_IF_VISIBLE = 4, added in API 36.
+            setPendingIntentBackgroundActivityStartMode(if (android.os.Build.VERSION.SDK_INT >= 36) 4
+                else android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
+        }.toBundle()
+    }
     private fun send(intent: PendingIntent?, notice: ShadeNotice?, autoCancel: Boolean) {
         if (!isOpen || !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         if (intent == null) { Toast.makeText(activity, R.string.shade_action_failed, Toast.LENGTH_SHORT).show(); return }
         runCatching {
-            val options = if (android.os.Build.VERSION.SDK_INT >= 34) android.app.ActivityOptions.makeBasic().apply {
-                // Only a visible, user-clicked shade can lend its launch privileges.
-                // API 36 adds the more restrictive ALLOW_IF_VISIBLE mode (value 4).
-                setPendingIntentBackgroundActivityStartMode(if (android.os.Build.VERSION.SDK_INT >= 36) 4
-                    else android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED)
-            }.toBundle() else null
-            intent.send(activity, 0, null, null, null, null, options)
+            intent.send(activity, 0, null, null, null, null, notificationLaunchOptions())
             if (autoCancel && notice?.autoCancel == true) LauncherNotificationListener.dismiss(listOf(notice.key))
         }.onFailure { Toast.makeText(activity, R.string.shade_action_failed, Toast.LENGTH_SHORT).show() }
     }
@@ -257,10 +262,10 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     }
     private inner class NoticeHolder : RecyclerView.ViewHolder(LinearLayout(activity)) {
         private val root = itemView as LinearLayout
-        private val source = text("", 14f)
+        private val source = text("", 14f).apply { maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
         private val name = text("", 18f).apply { id = R.id.shadeNoticeTitle; maxLines = 2; ellipsize = TextUtils.TruncateAt.END; setTypeface(typeface, Typeface.BOLD) }
         private val body = text("", 17f).apply { id = R.id.shadeNoticeText; ellipsize = TextUtils.TruncateAt.END }
-        private val dismiss = icon(R.drawable.shade_close, R.string.shade_dismiss).apply { id = R.id.shadeNoticeDismiss }
+        private val dismiss = icon(R.drawable.shade_close, R.string.shade_dismiss).apply { id = R.id.shadeNoticeDismiss; background = android.graphics.drawable.ColorDrawable(Color.WHITE) }
         private val more = button(activity.getString(R.string.shade_more))
         private val actions = LinearLayout(activity).apply { id = R.id.shadeNoticeActions }
         init {
@@ -268,10 +273,14 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
             root.setPadding(dp(12), dp(10), dp(12), dp(10))
             root.layoutParams = RecyclerView.LayoutParams(-1, -2)
             val heading = LinearLayout(activity).apply { gravity = Gravity.CENTER_VERTICAL }
-            heading.addView(source, LinearLayout.LayoutParams(0, -2, 1f))
+            val labels = LinearLayout(activity).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(source)
+                addView(name, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+            }
+            heading.addView(labels, LinearLayout.LayoutParams(0, -2, 1f))
             heading.addView(dismiss, LinearLayout.LayoutParams(dp(48), dp(48)))
             root.addView(heading)
-            root.addView(name)
             root.addView(body, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(5); bottomMargin = dp(8) })
             root.addView(more, LinearLayout.LayoutParams(-1, -2))
             root.addView(HorizontalScrollView(activity).apply { isHorizontalScrollBarEnabled = false; addView(actions) })
@@ -285,7 +294,13 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
             body.text = item.text
             body.isVisible = item.text.isNotBlank()
             body.maxLines = if (item.key in expanded) Int.MAX_VALUE else 3
-            more.isVisible = item.text.length > 100 || item.text.contains('\n')
+            more.isVisible = item.key in expanded
+            body.doOnLayout {
+                if (root.tag == item.key && item.key !in expanded) {
+                    val layout = body.layout
+                    more.isVisible = layout != null && layout.lineCount > 0 && layout.getEllipsisCount(layout.lineCount - 1) > 0
+                }
+            }
             more.text = activity.getString(if (item.key in expanded) R.string.shade_less else R.string.shade_more)
             more.setOnClickListener {
                 if (!expanded.add(item.key)) expanded.remove(item.key)

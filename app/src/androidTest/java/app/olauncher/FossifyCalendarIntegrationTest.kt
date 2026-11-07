@@ -70,9 +70,10 @@ class FossifyCalendarIntegrationTest {
             assertTrue("Fossify Snooze action was lost", reminder.actions.any { it.title.toString().contains("Snooze", true) })
             scenario.onActivity { it.openNotificationShade() }
             ShadeTestTools.instrumentation.waitForIdleSync()
-            ShadeTestTools.screenshot("jotterknocker-fossify-preview.png")
             val open = device.wait(Until.findObject(By.res(context.packageName, "shadeNoticeTitle").text(openTitle)), 8000)
             assertNotNull("Calendar reminder not rendered", open)
+            device.waitForIdle(1000)
+            ShadeTestTools.screenshot("jotterknocker-fossify-preview.png")
             open.click()
             val eventTitle = device.wait(Until.findObject(By.res(pkg, "event_title")), 12_000)
             assertNotNull("Tapping the reminder did not open Fossify's event", eventTitle)
