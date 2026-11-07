@@ -174,11 +174,13 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
         content.addView(edge, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
         content.addView(text(activity.getString(R.string.shade_calendar_help), 16f), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(16) })
         content.addView(text(activity.getString(R.string.restricted_settings_hint), 15f), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        val dialog = AlertDialog.Builder(activity).setTitle(R.string.shade_title).setView(ScrollView(activity).apply { addView(content) })
+        val theme = android.view.ContextThemeWrapper(activity, androidx.appcompat.R.style.Theme_AppCompat_Light_Dialog_Alert)
+        val dialog = AlertDialog.Builder(theme).setTitle(R.string.shade_title).setView(ScrollView(activity).apply { addView(content) })
             .setPositiveButton(android.R.string.ok, null).create()
         access.setOnClickListener { dialog.dismiss(); NotificationAccess.open(activity, false) }
         edge.setOnClickListener { dialog.dismiss(); NotificationAccess.open(activity, true) }
         dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.BLACK)
     }
 
     private fun renderNotices() {

@@ -117,11 +117,19 @@ class NotificationShadeTest {
         assertEquals("Snooze", notice.actions.single().title.toString())
         ShadeTestTools.waitFor("Reminder row missing") {
             var ready = false
-            scenario.onActivity { ready = (it.findViewById<RecyclerView>(R.id.shadeList).adapter?.itemCount ?: 0) == 1 }
+            scenario.onActivity {
+                val list = it.findViewById<RecyclerView>(R.id.shadeList)
+                val adapter = list.adapter as androidx.recyclerview.widget.ListAdapter<ShadeNotice, *>
+                val position = adapter.currentList.indexOfFirst { item -> item.key == notice.key }
+                if (position >= 0) { list.scrollToPosition(position); ready = list.findViewHolderForAdapterPosition(position) != null }
+            }
             ready
         }
         scenario.onActivity {
-            val row = it.findViewById<RecyclerView>(R.id.shadeList).getChildAt(0)
+            val list = it.findViewById<RecyclerView>(R.id.shadeList)
+            val adapter = list.adapter as androidx.recyclerview.widget.ListAdapter<ShadeNotice, *>
+            val position = adapter.currentList.indexOfFirst { item -> item.key == notice.key }
+            val row = list.findViewHolderForAdapterPosition(position)!!.itemView
             val actions = row.findViewById<android.widget.LinearLayout>(R.id.shadeNoticeActions)
             actions.getChildAt(0).performClick()
         }
