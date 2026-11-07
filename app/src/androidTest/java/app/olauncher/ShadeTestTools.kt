@@ -35,10 +35,10 @@ object ShadeTestTools {
         // Exercise the launcher as HOME, matching the installed phone rather than
         // leaving Quickstep as the default home behind a separately launched task.
         shell("cmd package set-home-activity ${context.packageName}/app.olauncher.MainActivity")
-        // Google's API 36 image can retain a Pixel Launcher ANR dialog over the
+        // Google's API 35+ images can retain a Pixel Launcher ANR dialog over the
         // new HOME app after repeated ActivityScenario transitions. Stop only
         // that unrelated emulator app; never dismiss an ANR of the app under test.
-        if (Build.VERSION.SDK_INT == 36) shell("am force-stop com.google.android.apps.nexuslauncher")
+        if (Build.VERSION.SDK_INT >= 35) shell("am force-stop com.google.android.apps.nexuslauncher")
         Prefs(context).apply {
             firstOpen = false; firstSettingsOpen = false; hideSetDefaultLauncher = true
             appTheme = AppCompatDelegate.MODE_NIGHT_NO; showStatusBar = true; lockModeOn = false
