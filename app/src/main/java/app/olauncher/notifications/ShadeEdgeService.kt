@@ -2,11 +2,15 @@ package app.olauncher.notifications
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.view.doOnLayout
+import androidx.lifecycle.Lifecycle
 import app.olauncher.MainActivity
 import app.olauncher.R
 import java.lang.ref.WeakReference
@@ -15,19 +19,38 @@ import java.lang.ref.WeakReference
 class ShadeEdgeService : AccessibilityService() {
     private var strip: View? = null
     private var touching = false
-    private var drawn = false
+    private var readyForInput = false
+    private var systemWindowActive = false
+    private val handler = Handler(Looper.getMainLooper())
+    private val dismissNative = Runnable {
+        val activity = host.get()
+        if (activity != null && activity.notificationShade.isOpen && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            if (android.os.Build.VERSION.SDK_INT >= 31) performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)
+            else if (systemWindowActive && !activity.hasWindowFocus()) performGlobalAction(GLOBAL_ACTION_BACK)
+        }
+    }
     private val manager get() = getSystemService(WINDOW_SERVICE) as WindowManager
     override fun onServiceConnected() { super.onServiceConnected(); instance = this; sync() }
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = sync()
-    override fun onInterrupt() { removeStrip() }
-    override fun onDestroy() { removeStrip(); if (instance === this) instance = null; super.onDestroy() }
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
+            systemWindowActive = event.packageName?.toString() == "com.android.systemui"
+        sync()
+    }
+    override fun onInterrupt() { handler.removeCallbacksAndMessages(null); removeStrip() }
+    override fun onDestroy() { handler.removeCallbacksAndMessages(null); removeStrip(); if (instance === this) instance = null; super.onDestroy() }
+    private fun recoverNativeGesture() {
+        handler.removeCallbacks(dismissNative)
+        handler.postDelayed(dismissNative, 120)
+        handler.postDelayed(dismissNative, 400)
+    }
 
     private fun sync() {
         val activity = host.get()
         if (activity?.isNotificationHomeVisible != true || activity.notificationShade.isOpen && !touching) { removeStrip(); return }
         if (strip != null) return
         val density = resources.displayMetrics.density
-        val pull = TopEdgePull(24f * density)
+        // Activate before SystemUI's drag monitor can pilfer the pointer stream.
+        val pull = TopEdgePull(12f * density)
         var pulled = false
         var startX = 0f
         var startY = 0f
@@ -47,20 +70,20 @@ class ShadeEdgeService : AccessibilityService() {
                         if (pull.move(event.rawX, event.rawY)) { pulled = true; host.get()?.openNotificationShade() }
                         touching = false; pull.cancel()
                         if (!pulled && kotlin.math.abs(event.rawX - startX) < 8 * density && kotlin.math.abs(event.rawY - startY) < 8 * density) v.performClick()
+                        if (pulled) recoverNativeGesture()
                         sync()
                     }
-                    MotionEvent.ACTION_CANCEL -> { touching = false; pulled = true; pull.cancel(); sync() }
+                    MotionEvent.ACTION_CANCEL -> {
+                        if (pulled) recoverNativeGesture()
+                        touching = false; pulled = true; pull.cancel(); sync()
+                    }
                     MotionEvent.ACTION_POINTER_DOWN -> { pulled = true; pull.cancel() }
                 }
                 true
             }
         }
-        view.viewTreeObserver.addOnDrawListener(object : android.view.ViewTreeObserver.OnDrawListener {
-            private var posted = false
-            override fun onDraw() {
-                if (!posted) { posted = true; view.post { if (strip === view) drawn = true } }
-            }
-        })
+        // Fully transparent windows need not draw on older Android versions.
+        view.doOnLayout { view.postOnAnimation { if (strip === view) readyForInput = true } }
         val height = (12 * density).toInt().coerceAtLeast(1)
         val params = WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, height,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
@@ -78,16 +101,17 @@ class ShadeEdgeService : AccessibilityService() {
         val old = strip
         strip = null
         touching = false
-        drawn = false
+        readyForInput = false
         old?.let { runCatching { manager.removeViewImmediate(it) } }
     }
 
     companion object {
         private var instance: ShadeEdgeService? = null
-        internal val edgeAttached get() = instance?.let { it.drawn && it.strip?.isAttachedToWindow == true } == true
+        internal val edgeAttached get() = instance?.let { it.readyForInput && it.strip?.isAttachedToWindow == true } == true
         private var host = WeakReference<MainActivity>(null)
         fun attach(activity: MainActivity) { host = WeakReference(activity); refresh() }
         fun detach(activity: MainActivity) { if (host.get() === activity) { host.clear(); refresh() } }
         fun refresh() { instance?.sync() }
+        fun cancelRecovery() { instance?.handler?.removeCallbacksAndMessages(null) }
     }
 }

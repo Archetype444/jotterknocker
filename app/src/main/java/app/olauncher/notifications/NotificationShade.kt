@@ -164,6 +164,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     fun close(): Boolean {
         if (!isOpen) return false
         view.visibility = View.GONE
+        ShadeEdgeService.cancelRecovery()
         homeContent.importantForAccessibility = oldAccessibility
         ShadeEdgeService.refresh()
         return true
@@ -171,6 +172,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     fun refresh() { if (isOpen) { activeNotices = NoticeStore.notices.value; activeMedia = ShadeMedia.playback.value; renderMedia(); renderNotices() } }
 
     fun showSettings() {
+        ShadeEdgeService.cancelRecovery()
         val content = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), dp(12)) }
         content.addView(text(activity.getString(R.string.shade_setup_body), 17f))
         val access = button(activity.getString(if (NotificationAccess.granted(activity)) R.string.shade_access_enabled else R.string.shade_access))

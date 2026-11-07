@@ -50,6 +50,10 @@ class TopEdgeServiceTest {
             ShadeTestTools.waitFor("Physical top-edge pull did not open notifications") {
                 var open = false; scenario.onActivity { open = it.notificationShade.isOpen }; open
             }
+            SystemClock.sleep(650) // Let any late SystemUI takeover and bounded recovery finish.
+            ShadeTestTools.waitFor("Android's stock shade covered the launcher panel") {
+                var visible = false; scenario.onActivity { visible = it.notificationShade.isOpen && it.hasWindowFocus() }; visible
+            }
             scenario.onActivity {
                 it.notificationShade.close()
                 it.startActivity(Intent(Settings.ACTION_SETTINGS))
