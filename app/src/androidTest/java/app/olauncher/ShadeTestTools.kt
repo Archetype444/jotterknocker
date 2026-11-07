@@ -2,6 +2,7 @@ package app.olauncher
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.UiAutomation
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -18,7 +19,9 @@ object ShadeTestTools {
     val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     val context get() = instrumentation.targetContext
     const val CHANNEL = "shade-fixtures"
-    fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(instrumentation.uiAutomation.executeShellCommand(command)).use { it.readBytes().toString(Charsets.UTF_8) }
+    fun shell(command: String): String = ParcelFileDescriptor.AutoCloseInputStream(
+        instrumentation.getUiAutomation(UiAutomation.FLAG_DONT_SUPPRESS_ACCESSIBILITY_SERVICES).executeShellCommand(command)
+    ).use { it.readBytes().toString(Charsets.UTF_8) }
     fun waitFor(message: String, timeout: Long = 12_000, condition: () -> Boolean) {
         val end = SystemClock.elapsedRealtime() + timeout
         while (SystemClock.elapsedRealtime() < end) { if (condition()) return; SystemClock.sleep(80) }
@@ -45,8 +48,17 @@ object ShadeTestTools {
         shell("settings put secure enabled_notification_listeners $value")
         waitFor("Notification listener never connected") { NoticeStore.connected.value }
     }
-    fun launch(): ActivityScenario<MainActivity> = ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).also {
-        instrumentation.waitForIdleSync(); SystemClock.sleep(350)
+    fun launch(): ActivityScenario<MainActivity> = ActivityScenario.launch<MainActivity>(Intent(context, MainActivity::class.java)).also { scenario ->
+        // RESUMED does not mean that WindowManager has completed the transition.
+        // In particular Android 16 can deliver window focus well after the first idle.
+        waitFor("Home did not become focused and laid out", timeout = 25_000) {
+            var ready = false
+            scenario.onActivity { activity ->
+                ready = activity.isNotificationHomeVisible && activity.window.decorView.isLaidOut
+            }
+            ready
+        }
+        instrumentation.waitForIdleSync()
     }
     fun screenshot(name: String) { shell("screencap -p /data/local/tmp/$name") }
 }

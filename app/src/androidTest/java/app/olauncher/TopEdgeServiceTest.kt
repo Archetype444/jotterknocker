@@ -32,7 +32,7 @@ class TopEdgeServiceTest {
             shell("settings put secure accessibility_enabled 1")
             ShadeTestTools.waitFor("Top-edge service was not enabled") { NotificationAccess.edgeGranted(ShadeTestTools.context) }
             // Wait for the actual service bind, not just the settings write.
-            ShadeTestTools.waitFor("Home edge strip was not attached") { app.olauncher.notifications.ShadeEdgeService.edgeAttached }
+            ShadeTestTools.waitFor("Home edge strip was not attached", timeout = 25_000) { app.olauncher.notifications.ShadeEdgeService.edgeAttached }
             instrumentation.waitForIdleSync()
             var width = 0
             scenario.onActivity { width = it.window.decorView.width; assertFalse(it.notificationShade.isOpen) }
@@ -66,7 +66,6 @@ class TopEdgeServiceTest {
             else shell("settings put secure enabled_accessibility_services $oldServices")
             shell("settings put secure accessibility_enabled $oldEnabled")
             scenario.close()
-            instrumentation.getUiAutomation(0)
         }
     }
 }
