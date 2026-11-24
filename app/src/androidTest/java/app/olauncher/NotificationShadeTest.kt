@@ -106,9 +106,10 @@ class NotificationShadeTest {
             a.notificationShade.close()
             val pad = a.findViewById<MarkdownEditText>(R.id.scratchpad)
             pad.scrollTo(0, 200)
-            val start = inset + 140f
+            assertTrue("The fixture note must be scrolled", pad.scrollY > 0)
+            val (noteX, start) = notePoint(a)
             listOf(MotionEvent.ACTION_DOWN to start, MotionEvent.ACTION_MOVE to start + 90, MotionEvent.ACTION_UP to start + 90).forEachIndexed { i, (action, y) ->
-                MotionEvent.obtain(now + 100, now + 100 + i * 20, action, x, y, 0).also { a.dispatchTouchEvent(it); it.recycle() }
+                MotionEvent.obtain(now + 100, now + 100 + i * 20, action, noteX, y, 0).also { a.dispatchTouchEvent(it); it.recycle() }
             }
             assertFalse(a.notificationShade.isOpen)
         }
