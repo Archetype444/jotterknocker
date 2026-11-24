@@ -100,6 +100,18 @@ class LauncherNotificationListener : NotificationListenerService() {
 
     companion object {
         private var instance: LauncherNotificationListener? = null
+        private var lastRebindTime: Long? = null
+
+        /** Refresh live data and recover an OS-disconnected listener without toggling its permission. */
+        fun ensureConnected(context: Context) {
+            if (!NotificationAccess.granted(context)) return
+            instance?.let { it.refresh(); return }
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (lastRebindTime?.let { now - it < 5_000 } == true) return
+            lastRebindTime = now
+            runCatching { requestRebind(ComponentName(context, LauncherNotificationListener::class.java)) }
+        }
+
         fun dismiss(keys: Collection<String>) {
             val service = instance ?: return
             runCatching {

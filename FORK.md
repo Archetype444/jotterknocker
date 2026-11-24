@@ -6,7 +6,7 @@ The package/namespace and preference filenames retain their original identities 
 
 Read-mode touches do not reach EditText. Only a confirmed tap enters editing. Vertical drag/fling uses OverScroller and VelocityTracker without reformatting the note. Horizontal gestures retain upstream's note pages/swipe-app behavior. A passive rounded scrollbar is drawn inside the text view, capped at 56dp, with a 12dp minimum and a 180ms fade. Native editing/selection and accessibility remain available.
 
-The app has no EXPAND_STATUS_BAR permission or launcher swipe-down action. Android still handles the top-edge notification gesture.
+Home-screen downward pulls open the launcher's native notification pane directly, without EXPAND_STATUS_BAR or a system-panel shortcut. Scrolled or edited notes retain their drag ownership; a read-mode note at its beginning supports pull-down notifications. The optional accessibility strip covers the actual status-bar/cutout inset and retains an already owned touch through focus changes. It never injects Back or uses timed recovery actions.
 
 Home content uses a shared 6dp start inset and no end inset. The note starts 4dp below actual system bars/cutouts; page indicators reserve space only when enabled. Selecting a 0dp bottom gap also removes the last row's label padding and aligns its visible glyphs to the bottom edge. Required system navigation space and visible setup prompts remain protected.
 

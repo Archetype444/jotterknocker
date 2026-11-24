@@ -32,7 +32,7 @@ class ShadeLogicTest {
         repeat(20) { position = MediaSeek.target(position, -15_000, 120_000) }
         assertEquals(0L, position)
     }
-    @Test fun downwardDragMustStartAtTheTopEdge() {
+    @Test fun ineligibleTouchesCannotOpenNotifications() {
         val pull = TopEdgePull(24f)
         pull.begin(10f, 100f, false)
         assertFalse(pull.move(10f, 400f))

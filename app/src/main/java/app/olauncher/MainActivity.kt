@@ -36,6 +36,7 @@ import app.olauncher.helper.isTablet
 import app.olauncher.helper.resetLauncherViaFakeActivity
 import app.olauncher.helper.showLauncherSelector
 import app.olauncher.helper.showToast
+import app.olauncher.ui.MarkdownEditText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,23 +55,42 @@ class MainActivity : AppCompatActivity() {
         private set
     private val notificationEdge by lazy { app.olauncher.notifications.TopEdgePull(24f * resources.displayMetrics.density) }
     private var notificationEdgeConsumed = false
-    val isNotificationHomeVisible: Boolean get() = isResumed && hasWindowFocus() &&
+    val isNotificationHomeResumed: Boolean get() = isResumed &&
         ::navController.isInitialized && navController.currentDestination?.id == R.id.mainFragment
+    val isNotificationHomeVisible: Boolean get() = isNotificationHomeResumed && hasWindowFocus()
     val isNotificationEdgeActive: Boolean get() = isNotificationHomeVisible &&
         ::notificationShade.isInitialized && !notificationShade.isOpen
 
     fun openNotificationShade() { if (isNotificationEdgeActive) notificationShade.show() }
 
+    /** Only the accessibility strip that already owns a home-edge pull may finish after focus changes. */
+    internal fun finishNotificationEdgePull() {
+        if (isNotificationHomeResumed && ::notificationShade.isInitialized) notificationShade.show()
+    }
+
+    private fun canStartNotificationPull(event: MotionEvent): Boolean {
+        if (!isNotificationEdgeActive || binding.messageLayout.visibility == View.VISIBLE) return false
+        val insets = ViewCompat.getRootWindowInsets(window.decorView)
+            ?.getInsets(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout())
+        val origin = IntArray(2).also { window.decorView.getLocationOnScreen(it) }
+        // The top edge always belongs to notifications, even while a note is scrolled or edited.
+        if (event.rawY <= origin[1] + (insets?.top ?: 0) + 8 * resources.displayMetrics.density) return true
+        val pad = findViewById<MarkdownEditText>(R.id.scratchpad) ?: return true
+        val bounds = android.graphics.Rect()
+        if (!pad.getGlobalVisibleRect(bounds) || !bounds.contains(event.rawX.toInt(), event.rawY.toInt())) return true
+        // A downward drag in a scrolled note must still read back towards its beginning.
+        // Editing, selection and stopping a moving note retain their existing touch ownership.
+        return !pad.isFocused && pad.scrollY == 0 && !pad.isReadingScrollActive
+    }
+
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 notificationEdgeConsumed = false
-                val status = ViewCompat.getRootWindowInsets(window.decorView)?.getInsets(WindowInsetsCompat.Type.statusBars())?.top ?: 0
-                val origin = IntArray(2).also { window.decorView.getLocationOnScreen(it) }
-                val edgeBottom = origin[1] + status + 8 * resources.displayMetrics.density
-                notificationEdge.begin(event.rawX, event.rawY, isNotificationEdgeActive && event.rawY <= edgeBottom)
+                notificationEdge.begin(event.rawX, event.rawY, canStartNotificationPull(event))
             }
             MotionEvent.ACTION_MOVE, MotionEvent.ACTION_UP -> {
+                if (!notificationEdgeConsumed && !isNotificationEdgeActive) notificationEdge.cancel()
                 if (!notificationEdgeConsumed && notificationEdge.move(event.rawX, event.rawY)) {
                     val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
                     try { super.dispatchTouchEvent(cancel) } finally { cancel.recycle() }
@@ -183,6 +203,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         isResumed = true
+        app.olauncher.notifications.LauncherNotificationListener.ensureConnected(this)
         notificationShade.refresh()
         app.olauncher.notifications.ShadeEdgeService.refresh()
         viewModel.isPrivateSpaceToggling = false

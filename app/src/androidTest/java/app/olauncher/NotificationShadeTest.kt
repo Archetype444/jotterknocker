@@ -13,6 +13,8 @@ import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.TypedValue
+import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
@@ -88,7 +90,7 @@ class NotificationShadeTest {
             assertEquals(position, pad.scrollY); assertEquals(note, pad.text.toString())
         }
     }
-    @Test fun topEdgePullOpensWhileAnOrdinaryNoteDragDoesNot() {
+    @Test fun topEdgePullOpensWhileAScrolledNoteKeepsItsDrag() {
         scenario.onActivity { a ->
             val inset = ViewCompat.getRootWindowInsets(a.window.decorView)!!.getInsets(WindowInsetsCompat.Type.statusBars()).top
             val x = a.window.decorView.width / 2f
@@ -102,11 +104,123 @@ class NotificationShadeTest {
             MotionEvent.obtain(now + 60, now + 90, MotionEvent.ACTION_UP, x, inset + 120f, 0).also { a.dispatchTouchEvent(it); it.recycle() }
             assertTrue("A batched fast swipe must open on the up event", a.notificationShade.isOpen)
             a.notificationShade.close()
+            val pad = a.findViewById<MarkdownEditText>(R.id.scratchpad)
+            pad.scrollTo(0, 200)
             val start = inset + 140f
             listOf(MotionEvent.ACTION_DOWN to start, MotionEvent.ACTION_MOVE to start + 90, MotionEvent.ACTION_UP to start + 90).forEachIndexed { i, (action, y) ->
                 MotionEvent.obtain(now + 100, now + 100 + i * 20, action, x, y, 0).also { a.dispatchTouchEvent(it); it.recycle() }
             }
             assertFalse(a.notificationShade.isOpen)
+        }
+    }
+    private fun dispatch(a: MainActivity, action: Int, x: Float, y: Float, down: Long, time: Long) {
+        val event = MotionEvent.obtain(down, time, action, x, y, 0)
+        try { a.dispatchTouchEvent(event) } finally { event.recycle() }
+    }
+    private fun notePoint(a: MainActivity): Pair<Float, Float> {
+        val pad = a.findViewById<MarkdownEditText>(R.id.scratchpad)
+        val origin = IntArray(2).also { pad.getLocationInWindow(it) }
+        return origin[0] + pad.width / 2f to origin[1] + pad.height / 3f
+    }
+    @Test fun repeatedHomePullsOpenWithoutTheAccessibilityServiceOrFlingVelocity() {
+        scenario.onActivity { a ->
+            val pad = a.findViewById<MarkdownEditText>(R.id.scratchpad)
+            val original = pad.text.toString()
+            val (x, y) = notePoint(a)
+            val distance = 72f * a.resources.displayMetrics.density
+            repeat(24) { attempt ->
+                val now = SystemClock.uptimeMillis()
+                pad.scrollTo(0, 0)
+                // Cover fast batched input and slow deliberate pulls, without a velocity requirement.
+                val duration = if (attempt % 2 == 0) 40L else 1_200L
+                dispatch(a, MotionEvent.ACTION_DOWN, x, y, now, now)
+                if (attempt % 3 != 0) dispatch(a, MotionEvent.ACTION_MOVE, x, y + distance / 2, now, now + duration / 2)
+                dispatch(a, MotionEvent.ACTION_UP, x, y + distance, now, now + duration)
+                assertTrue("Home pull $attempt did not open notifications", a.notificationShade.isOpen)
+                assertFalse("A notification pull must not enter note editing", pad.isFocused)
+                assertEquals(original, pad.text.toString())
+                assertEquals(0, pad.scrollY)
+                a.notificationShade.close()
+            }
+        }
+    }
+    @Test fun homePullCancelsAppPressWithoutLaunchingIt() {
+        scenario.onActivity { a ->
+            val target = a.findViewById<View>(R.id.homeApp1)
+            var clicks = 0
+            target.setOnTouchListener(null)
+            target.setOnClickListener { clicks++ }
+            val origin = IntArray(2).also { target.getLocationInWindow(it) }
+            val x = origin[0] + target.width / 2f
+            val y = origin[1] + target.height / 2f
+            val now = SystemClock.uptimeMillis()
+            dispatch(a, MotionEvent.ACTION_DOWN, x, y, now, now)
+            dispatch(a, MotionEvent.ACTION_UP, x, y + 80 * a.resources.displayMetrics.density, now, now + 80)
+            assertTrue(a.notificationShade.isOpen)
+            assertFalse(target.isPressed)
+            assertEquals(0, clicks)
+        }
+    }
+    @Test fun scrolledAndEditedNotesKeepDownwardDrags() {
+        scenario.onActivity { a ->
+            val pad = a.findViewById<MarkdownEditText>(R.id.scratchpad)
+            val (x, y) = notePoint(a)
+            val distance = 60 * a.resources.displayMetrics.density
+            val original = pad.text.toString()
+            pad.scrollTo(0, 200)
+            val before = pad.scrollY
+            var now = SystemClock.uptimeMillis()
+            dispatch(a, MotionEvent.ACTION_DOWN, x, y, now, now)
+            dispatch(a, MotionEvent.ACTION_MOVE, x, y + distance, now, now + 100)
+            dispatch(a, MotionEvent.ACTION_UP, x, y + distance, now, now + 200)
+            assertFalse(a.notificationShade.isOpen)
+            assertTrue("The scrolled note must still move towards its beginning", pad.scrollY < before)
+            pad.stopReadingScroll()
+            pad.scrollTo(0, 0)
+            pad.requestFocus()
+            now = SystemClock.uptimeMillis()
+            dispatch(a, MotionEvent.ACTION_DOWN, x, y, now, now)
+            dispatch(a, MotionEvent.ACTION_MOVE, x, y + distance, now, now + 100)
+            dispatch(a, MotionEvent.ACTION_UP, x, y + distance, now, now + 200)
+            assertFalse("Editing must retain Android's native selection and scrolling", a.notificationShade.isOpen)
+            assertEquals(original, pad.text.toString())
+        }
+    }
+    @Test fun aSecondFingerAndCancellationCannotOpenNotifications() {
+        scenario.onActivity { a ->
+            val (x, y) = notePoint(a)
+            val now = SystemClock.uptimeMillis()
+            dispatch(a, MotionEvent.ACTION_DOWN, x, y, now, now)
+            val properties = arrayOf(MotionEvent.PointerProperties().apply { id = 0; toolType = MotionEvent.TOOL_TYPE_FINGER },
+                MotionEvent.PointerProperties().apply { id = 1; toolType = MotionEvent.TOOL_TYPE_FINGER })
+            val coords = arrayOf(MotionEvent.PointerCoords().apply { this.x = x; this.y = y; pressure = 1f },
+                MotionEvent.PointerCoords().apply { this.x = x + 40; this.y = y; pressure = 1f })
+            val pointer = MotionEvent.obtain(now, now + 20, MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT),
+                2, properties, coords, 0, 0, 1f, 1f, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0)
+            try { a.dispatchTouchEvent(pointer) } finally { pointer.recycle() }
+            dispatch(a, MotionEvent.ACTION_CANCEL, x, y + 120, now, now + 40)
+            assertFalse(a.notificationShade.isOpen)
+            val next = now + 60
+            dispatch(a, MotionEvent.ACTION_DOWN, x, y, next, next)
+            dispatch(a, MotionEvent.ACTION_CANCEL, x, y, next, next + 10)
+            dispatch(a, MotionEvent.ACTION_MOVE, x, y + 120, next, next + 20)
+            assertFalse(a.notificationShade.isOpen)
+        }
+    }
+    @Test fun notificationTitleAndBodyAreTwentyFivePercentLarger() {
+        post(1)
+        show()
+        ShadeTestTools.waitFor("Notification text did not bind") {
+            var ready = false
+            scenario.onActivity { ready = it.findViewById<TextView>(R.id.shadeNoticeTitle) != null }
+            ready
+        }
+        scenario.onActivity {
+            val metrics = it.resources.displayMetrics
+            assertEquals(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22.5f, metrics),
+                it.findViewById<TextView>(R.id.shadeNoticeTitle).textSize, 0.01f)
+            assertEquals(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 21.25f, metrics),
+                it.findViewById<TextView>(R.id.shadeNoticeText).textSize, 0.01f)
         }
     }
     @Test fun eventNotificationsKeepFullTextAndOriginalSnoozeActions() {

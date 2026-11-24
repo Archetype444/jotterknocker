@@ -9,6 +9,13 @@ on:
       - '*.gradle'
       - '.github/workflows/release-build.yml'
       - 'scripts/**'
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - '*.gradle'
+      - '.github/workflows/release-build.yml'
+      - 'scripts/**'
   workflow_dispatch:
 
 permissions:

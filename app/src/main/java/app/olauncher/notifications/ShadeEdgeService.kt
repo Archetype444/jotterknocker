@@ -2,100 +2,124 @@ package app.olauncher.notifications
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
-import android.os.Handler
-import android.os.Looper
+import android.os.Build
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnLayout
-import androidx.lifecycle.Lifecycle
 import app.olauncher.MainActivity
 import app.olauncher.R
 import java.lang.ref.WeakReference
 
-/** A home-only trusted overlay can receive the physical edge above the system status bar. */
+/** Optional physical-edge input. Ordinary home pulls are owned directly by MainActivity. */
 class ShadeEdgeService : AccessibilityService() {
     private var strip: View? = null
     private var touching = false
     private var readyForInput = false
-    private var systemWindowActive = false
-    private var nativeDismissAttempts = 0
-    private val handler = Handler(Looper.getMainLooper())
-    private val dismissNative = Runnable {
-        val activity = host.get()
-        if (activity != null && activity.notificationShade.isOpen && activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-            val attempt = nativeDismissAttempts++
-            // SystemUI may finish taking the gesture after the first dismissal.
-            // Newer scene-based shades do not always emit a window-state event.
-            // A final Back is bounded to this Home pull, while our pane remains
-            // open and RESUMED but a system window has taken input focus.
-            val modern = android.os.Build.VERSION.SDK_INT >= 31
-            val action = if (modern && attempt < 2) GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE
-                else if (!activity.hasWindowFocus() && (modern || systemWindowActive)) GLOBAL_ACTION_BACK else return@Runnable
-            val result = performGlobalAction(action)
-            if (app.olauncher.BuildConfig.DEBUG) android.util.Log.d("ShadeEdge", "Native action=$action result=$result focus=${activity.hasWindowFocus()} system=$systemWindowActive")
-        }
-    }
+    private var pendingSystemDismissal = false
     private val manager get() = getSystemService(WINDOW_SERVICE) as WindowManager
+
     override fun onServiceConnected() { super.onServiceConnected(); instance = this; sync() }
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED)
-            systemWindowActive = event.packageName?.toString() == "com.android.systemui"
+        if (event != null && (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+                event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) &&
+            event.packageName?.toString() == "com.android.systemui") dismissSystemShade()
         sync()
     }
-    override fun onInterrupt() { handler.removeCallbacksAndMessages(null); removeStrip() }
-    override fun onDestroy() { handler.removeCallbacksAndMessages(null); removeStrip(); if (instance === this) instance = null; super.onDestroy() }
-    private fun recoverNativeGesture() {
-        handler.removeCallbacks(dismissNative)
-        nativeDismissAttempts = 0
-        handler.postDelayed(dismissNative, 120)
-        handler.postDelayed(dismissNative, 400)
-        handler.postDelayed(dismissNative, 900)
+    override fun onInterrupt() { pendingSystemDismissal = false; removeStrip() }
+    override fun onDestroy() {
+        pendingSystemDismissal = false
+        removeStrip()
+        if (instance === this) instance = null
+        super.onDestroy()
+    }
+
+    private fun dismissSystemShade() {
+        val activity = host.get() ?: return
+        if (Build.VERSION.SDK_INT >= 31 && pendingSystemDismissal &&
+            activity.isNotificationHomeResumed && activity.notificationShade.isOpen && !activity.hasWindowFocus()) {
+            // Use the dedicated platform action only for SystemUI taking this owned edge pull.
+            // Never synthesize Back, close unrelated windows, or schedule delayed retries.
+            if (performGlobalAction(GLOBAL_ACTION_DISMISS_NOTIFICATION_SHADE)) pendingSystemDismissal = false
+        }
     }
 
     private fun sync() {
         val activity = host.get()
-        if (activity?.isNotificationHomeVisible != true || activity.notificationShade.isOpen && !touching) { removeStrip(); return }
-        if (strip != null) return
+        if (activity?.isNotificationHomeResumed != true) {
+            pendingSystemDismissal = false
+            removeStrip()
+            return
+        }
+        if (!activity.notificationShade.isOpen) pendingSystemDismissal = false
+        // Keep ownership until UP/CANCEL. A focus event during the pull must not tear its input window down.
+        if (!touching && (!activity.isNotificationHomeVisible || activity.notificationShade.isOpen)) {
+            removeStrip()
+            return
+        }
         val density = resources.displayMetrics.density
-        // Activate before SystemUI's drag monitor can pilfer the pointer stream.
+        val top = ViewCompat.getRootWindowInsets(activity.window.decorView)
+            ?.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout())?.top ?: 0
+        val height = maxOf(top, (12 * density).toInt().coerceAtLeast(1))
+        strip?.let {
+            val params = it.layoutParams as WindowManager.LayoutParams
+            if (params.height != height && !touching) {
+                params.height = height
+                runCatching { manager.updateViewLayout(it, params) }
+            }
+            return
+        }
         val pull = TopEdgePull(12f * density)
         var pulled = false
         var startX = 0f
         var startY = 0f
+        var owner = WeakReference<MainActivity>(null)
+        fun open() {
+            val target = owner.get() ?: return
+            if (target !== host.get() || !target.isNotificationHomeResumed) return
+            pulled = true
+            pendingSystemDismissal = true
+            target.finishNotificationEdgePull()
+        }
         val view = View(this).apply {
             contentDescription = getString(R.string.shade_open)
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setOnClickListener { host.get()?.openNotificationShade() }
-            setOnTouchListener { v, event ->
-                if (app.olauncher.BuildConfig.DEBUG) android.util.Log.d("ShadeEdge", "Touch ${event.actionMasked}, home=${host.get()?.isNotificationHomeVisible}")
+            setOnTouchListener { _, event ->
                 when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> { touching = true; pulled = false; startX = event.rawX; startY = event.rawY; pull.begin(startX, startY, true) }
-                    MotionEvent.ACTION_MOVE -> if (pull.move(event.rawX, event.rawY)) {
-                        pulled = true; host.get()?.openNotificationShade()
+                    MotionEvent.ACTION_DOWN -> {
+                        if (host.get()?.isNotificationEdgeActive != true) return@setOnTouchListener false
+                        owner = WeakReference(host.get())
+                        touching = true
+                        pulled = false
+                        startX = event.rawX
+                        startY = event.rawY
+                        pull.begin(startX, startY, true)
                     }
+                    MotionEvent.ACTION_MOVE -> if (pull.move(event.rawX, event.rawY)) open()
                     MotionEvent.ACTION_UP -> {
-                        // A fast swipe may deliver its final distance only in the up event.
-                        if (pull.move(event.rawX, event.rawY)) { pulled = true; host.get()?.openNotificationShade() }
-                        touching = false; pull.cancel()
-                        if (!pulled && kotlin.math.abs(event.rawX - startX) < 8 * density && kotlin.math.abs(event.rawY - startY) < 8 * density) v.performClick()
-                        if (pulled) recoverNativeGesture()
+                        // Batched fast swipes may first cross the threshold in their final event.
+                        if (pull.move(event.rawX, event.rawY)) open()
+                        touching = false
+                        pull.cancel()
+                        if (pulled) dismissSystemShade()
                         sync()
                     }
                     MotionEvent.ACTION_CANCEL -> {
-                        if (pulled) recoverNativeGesture()
-                        touching = false; pulled = true; pull.cancel(); sync()
+                        touching = false
+                        pull.cancel()
+                        if (pulled) dismissSystemShade()
+                        sync()
                     }
-                    MotionEvent.ACTION_POINTER_DOWN -> { pulled = true; pull.cancel() }
+                    MotionEvent.ACTION_POINTER_DOWN -> pull.cancel()
                 }
                 true
             }
         }
-        // Fully transparent windows need not draw on older Android versions.
         view.doOnLayout { view.postOnAnimation { if (strip === view) readyForInput = true } }
-        val height = (12 * density).toInt().coerceAtLeast(1)
         val params = WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT, height,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
@@ -103,7 +127,7 @@ class ShadeEdgeService : AccessibilityService() {
             PixelFormat.TRANSLUCENT).apply {
             gravity = Gravity.TOP or Gravity.START
             title = getString(R.string.shade_edge_label)
-            if (android.os.Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            if (Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
         runCatching { manager.addView(view, params); strip = view }
     }
@@ -122,7 +146,7 @@ class ShadeEdgeService : AccessibilityService() {
         private var host = WeakReference<MainActivity>(null)
         fun attach(activity: MainActivity) { host = WeakReference(activity); refresh() }
         fun detach(activity: MainActivity) { if (host.get() === activity) { host.clear(); refresh() } }
-        fun refresh() { instance?.sync() }
-        fun cancelRecovery() { instance?.handler?.removeCallbacksAndMessages(null) }
+        fun refresh() { instance?.let { it.dismissSystemShade(); it.sync() } }
+        fun cancelSystemDismissal() { instance?.pendingSystemDismissal = false }
     }
 }

@@ -2,7 +2,7 @@ package app.olauncher.notifications
 
 import kotlin.math.abs
 
-/** Only a gesture that starts in the edge strip can open the shade. */
+/** Recognizes one downward pull after the caller grants this touch stream to notifications. */
 class TopEdgePull(private val threshold: Float) {
     private var x = 0f
     private var y = 0f

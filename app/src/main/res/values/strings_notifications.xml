@@ -12,7 +12,7 @@
     <string name="shade_edge_description">Opens jotterknocker notifications when you pull down from the very top of the home screen. The touch strip is removed when you leave home. This service does not read screen contents or remap hardware buttons.</string>
     <string name="shade_edge">Top-edge swipe</string>
     <string name="shade_edge_enabled">Top-edge swipe is on</string>
-    <string name="shade_setup_body">Enable notification access first. For a swipe starting above the status bar, enable jotterknocker · Top-edge notifications in Accessibility. Both permissions can be turned off here.</string>
+    <string name="shade_setup_body">Enable notification access, then swipe down on the home screen. In the note, pull down from its beginning; scrolling and editing still work normally. For a swipe starting above the status bar, also enable jotterknocker · Top-edge notifications in Accessibility. Both permissions can be turned off here.</string>
     <string name="shade_calendar_help">Calendar reminders use Calendar’s notification settings and scheduled alarms. Allow its reminders and background activity in the phone settings.</string>
     <string name="shade_settings_unavailable">Open the phone settings to enable notification access or Accessibility.</string>
     <string name="shade_settings">Settings</string>

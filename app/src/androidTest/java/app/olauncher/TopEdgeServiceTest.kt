@@ -52,16 +52,21 @@ class TopEdgeServiceTest {
                     SystemClock.sleep(16) // A real timed input stream, including Android's batching.
                 }
             }
-            pull()
-            ShadeTestTools.waitFor("Physical top-edge pull did not open notifications") {
-                var open = false; scenario.onActivity { open = it.notificationShade.isOpen }; open
-            }
-            SystemClock.sleep(650) // Let any late SystemUI takeover and bounded recovery finish.
-            ShadeTestTools.waitFor("Android's stock shade covered the launcher panel") {
-                var visible = false; scenario.onActivity { visible = it.notificationShade.isOpen && it.hasWindowFocus() }; visible
+            repeat(12) { attempt ->
+                ShadeTestTools.waitFor("Home edge strip did not return for pull $attempt") { app.olauncher.notifications.ShadeEdgeService.edgeAttached }
+                device.waitForIdle(500)
+                pull()
+                ShadeTestTools.waitFor("Physical top-edge pull $attempt did not open notifications") {
+                    var open = false; scenario.onActivity { open = it.notificationShade.isOpen }; open
+                }
+                // Wait through actual window transitions, including a late SystemUI takeover.
+                device.waitForIdle(1000)
+                ShadeTestTools.waitFor("Android's stock shade covered launcher pull $attempt") {
+                    var visible = false; scenario.onActivity { visible = it.notificationShade.isOpen && it.hasWindowFocus() }; visible
+                }
+                scenario.onActivity { it.notificationShade.close() }
             }
             scenario.onActivity {
-                it.notificationShade.close()
                 it.startActivity(Intent(Settings.ACTION_SETTINGS))
             }
             ShadeTestTools.waitFor("Home edge strip leaked into another app") { !app.olauncher.notifications.ShadeEdgeService.edgeAttached }

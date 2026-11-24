@@ -1085,7 +1085,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onSwipeDown() {
                 super.onSwipeDown()
-                // The notification shade belongs to Android's top-edge gesture.
+                // MainActivity owns downward home pulls before child gesture detectors.
             }
 
             override fun onLongClick() {
@@ -1133,7 +1133,7 @@ class HomeFragment : BaseFragment(), View.OnClickListener, View.OnLongClickListe
 
             override fun onSwipeDown() {
                 super.onSwipeDown()
-                // The notification shade belongs to Android's top-edge gesture.
+                // MainActivity owns downward home pulls before child gesture detectors.
             }
 
             override fun onLongClick(view: View) {

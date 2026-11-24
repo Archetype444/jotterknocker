@@ -151,6 +151,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
 
     fun show() {
         if (isOpen) return
+        LauncherNotificationListener.ensureConnected(activity)
         activity.currentFocus?.hideKeyboard()
         oldAccessibility = homeContent.importantForAccessibility
         homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
@@ -165,7 +166,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     fun close(): Boolean {
         if (!isOpen) return false
         view.visibility = View.GONE
-        ShadeEdgeService.cancelRecovery()
+        ShadeEdgeService.cancelSystemDismissal()
         homeContent.importantForAccessibility = oldAccessibility
         ShadeEdgeService.refresh()
         return true
@@ -173,7 +174,7 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     fun refresh() { if (isOpen) { activeNotices = NoticeStore.notices.value; activeMedia = ShadeMedia.playback.value; renderMedia(); renderNotices() } }
 
     fun showSettings() {
-        ShadeEdgeService.cancelRecovery()
+        ShadeEdgeService.cancelSystemDismissal()
         val content = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), dp(12)) }
         content.addView(text(activity.getString(R.string.shade_setup_body), 17f))
         val access = button(activity.getString(if (NotificationAccess.granted(activity)) R.string.shade_access_enabled else R.string.shade_access))
@@ -271,8 +272,8 @@ class NotificationShade(private val activity: MainActivity, parent: FrameLayout)
     private inner class NoticeHolder : RecyclerView.ViewHolder(LinearLayout(activity)) {
         private val root = itemView as LinearLayout
         private val source = text("", 14f).apply { maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
-        private val name = text("", 18f).apply { id = R.id.shadeNoticeTitle; maxLines = 2; ellipsize = TextUtils.TruncateAt.END; setTypeface(typeface, Typeface.BOLD) }
-        private val body = text("", 17f).apply { id = R.id.shadeNoticeText; ellipsize = TextUtils.TruncateAt.END }
+        private val name = text("", 22.5f).apply { id = R.id.shadeNoticeTitle; maxLines = 2; ellipsize = TextUtils.TruncateAt.END; setTypeface(typeface, Typeface.BOLD) }
+        private val body = text("", 21.25f).apply { id = R.id.shadeNoticeText; ellipsize = TextUtils.TruncateAt.END }
         private val dismiss = icon(R.drawable.shade_close, R.string.shade_dismiss).apply { id = R.id.shadeNoticeDismiss; background = android.graphics.drawable.ColorDrawable(Color.WHITE) }
         private val more = button(activity.getString(R.string.shade_more))
         private val actions = LinearLayout(activity).apply { id = R.id.shadeNoticeActions }
